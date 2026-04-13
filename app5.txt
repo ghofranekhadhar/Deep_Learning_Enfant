@@ -977,6 +977,7 @@ def main():
                     {v.get("raison","")}</p>
                 </div>""",unsafe_allow_html=True)
 
+
                 sugg=v.get("suggestions",[])
                 if sugg:
                     st.markdown("#### 💡 Essaie plutôt :")
