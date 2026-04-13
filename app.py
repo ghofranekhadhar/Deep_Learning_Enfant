@@ -1089,17 +1089,21 @@ def main():
             pb_bg = st.progress(0, text="Téléchargement des images d'arrière-plan en parallèle…")
             
             def fetch_image(i, scene):
-                try:
-                    prompt = f"{scene.image_prompt}, 2d flat vector illustration, colorful children book style, cute, no text, no people"
-                    url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={Cfg.SIZE}&height={Cfg.SIZE}&nologo=true&seed={42+i}"
-                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}, method='GET')
-                    with urllib.request.urlopen(req, timeout=15) as resp:
-                        scene.bg_img = Image.open(resp).convert("RGBA").resize((Cfg.SIZE, Cfg.SIZE))
-                except Exception as e:
-                    scene.bg_img = None # Repli sur draw_bg si problème
+                import time
+                for attempt in range(3):
+                    try:
+                        prompt = f"{scene.image_prompt}, 2d flat vector illustration, colorful children book style, cute, no text, no people"
+                        url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={Cfg.SIZE}&height={Cfg.SIZE}&nologo=true&seed={42+i}"
+                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}, method='GET')
+                        with urllib.request.urlopen(req, timeout=15) as resp:
+                            scene.bg_img = Image.open(resp).convert("RGBA").resize((Cfg.SIZE, Cfg.SIZE))
+                        return i # Succès
+                    except Exception as e:
+                        time.sleep(1.5) # Attendre avant de réessayer
+                scene.bg_img = None # Repli si tout échoue
                 return i
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
                 futures = [executor.submit(fetch_image, i, scene) for i, scene in enumerate(scenes)]
                 completed = 0
                 for future in concurrent.futures.as_completed(futures):
