@@ -201,9 +201,10 @@ def _call(api_key: str, prompt: str, max_tok: int = 800) -> dict:
     m = c.chat.completions.create(
         model=Cfg.MODEL,
         max_tokens=max_tok,
+        response_format={"type": "json_object"},
         messages=[
             {"role": "system",
-             "content": "Tu es un assistant qui répond UNIQUEMENT en JSON valide, sans aucun texte avant ou après, sans markdown."},
+             "content": "Tu es un assistant qui répond UNIQUEMENT en JSON valide."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -977,7 +978,6 @@ def main():
                     {v.get("raison","")}</p>
                 </div>""",unsafe_allow_html=True)
 
-
                 sugg=v.get("suggestions",[])
                 if sugg:
                     st.markdown("#### 💡 Essaie plutôt :")
@@ -1150,3 +1150,5 @@ def main():
 
 if __name__=="__main__":
     main()
+
+
