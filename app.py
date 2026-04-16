@@ -51,7 +51,7 @@ class Cfg:
 # ─────────────────────────────────────────
 @dataclass
 class Character:
-    prenom:str; age:int; genre:str
+    prenom:str; age:int; genre:str; hero:str="Par défaut"
 
 @dataclass
 class SongData:
@@ -61,10 +61,12 @@ class SongData:
 
 @dataclass
 class Scene:
-    titre:str; acte_label:str; decor:str; action:str
+    titre:str; decor:str; action:str
     emotion:str; dialogue:str; duree:int
-    sky_mood:str="day"; song_part:str=""
+    sky_mood:str="day"
     image_prompt:str=""
+    emotion_text:str=""
+    lieu_texte:str=""
     bg_img:Image.Image=None
 
 # ─────────────────────────────────────────
@@ -95,6 +97,10 @@ THEMES = {
         "sky_n":((255,180,100),(255,210,150)),"sky_d":((200,50,0),(140,30,0)),"sky_g":((255,160,40),(255,200,90)),
         "gnd":(70,160,70),"gnds":(50,120,50),"fx":(255,80,0),"wall":(255,220,195),
         "desc":"Cuisine avec gaz, flammes rouges dramatiques"},
+    "behaviour":{"label":"🤝 Comportement","emoji":"🤝","color":"#f59e0b",
+        "sky_n":((255,230,160),(255,245,200)),"sky_d":((200,100,30),(140,70,20)),"sky_g":((255,200,80),(255,230,120)),
+        "gnd":(80,170,80),"gnds":(55,130,55),"fx":(255,190,0),"wall":(255,245,220),
+        "desc":"Classe d'école ou cour de récréation, enfants qui jouent"},
     "general":{"label":"🌟 Général","emoji":"🌟","color":"#6366f1",
         "sky_n":((100,160,255),(200,230,255)),"sky_d":((220,80,50),(150,60,40)),"sky_g":((255,180,60),(255,220,120)),
         "gnd":(70,175,70),"gnds":(50,130,50),"fx":(255,200,0),"wall":(255,235,210),
@@ -108,6 +114,7 @@ EXAMPLES = [
     {"icon":"🏊","label":"Piscine","text":"Ma fille Lina, 4 ans, s'approche seule du bord de la piscine","theme":"pool"},
     {"icon":"🚗","label":"Traverser la rue","text":"Mon fils Rayan, 6 ans, traverse la rue sans regarder","theme":"road"},
     {"icon":"🔥","label":"Feu / Gaz","text":"Ma fille Sara, 5 ans, allume les boutons du gaz","theme":"fire"},
+    {"icon":"🤝","label":"Frappe ses amis","text":"Mon fils Omar, 5 ans, frappe ses camarades de classe","theme":"behaviour"},
 ]
 
 # ─────────────────────────────────────────
@@ -119,7 +126,7 @@ Analyse cette phrase parentale et réponds UNIQUEMENT en JSON valide sans markdo
   "valide": true,
   "raison": "courte explication",
   "prenom": "prénom ou null",
-  "age": 5,
+  "age": "âge (nombre entier) ou null",
   "genre": "garçon ou fille",
   "danger": "type danger 3 mots",
   "theme": "electric|kitchen|meds|pool|road|fire|general",
@@ -131,53 +138,88 @@ Analyse cette phrase parentale et réponds UNIQUEMENT en JSON valide sans markdo
 Phrase : {betise}"""
 
 SCN_PROMPT="""Tu es auteur de livres éducatifs pour enfants 3-8 ans. Génère une chanson narrative rimée.
+INSTRUCTION DE STYLE : Les phrases de narration (scenes_narration) DOIVENT être racontées avec une voix de conteur très enthousiaste ! Utilise des exclamations, des onomatopées (Boïng, Oups, Aïe) et des questions pour captiver l'enfant !
 Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
-{{"prenom":"{prenom}","age":{age},"genre":"{genre}","danger_court":"3 mots max",
+{{"prenom":"{prenom}","age":{age},"genre":"{genre}","hero":"{hero}","danger_court":"3 mots max",
 "decor_principal":"8 mots max","ambiance_couleur":"couleur dominante",
 "scenes_narration":[
-  "Scène 1 Introduction : phrase courte qui décrit ce qui se passe (max 8 mots)",
-  "Scène 2 Vie normale : phrase courte",
-  "Scène 3 Belle journée : phrase courte",
-  "Scène 4 Découverte : phrase courte",
-  "Scène 5 Une idée : phrase courte",
-  "Scène 6 Attention danger : phrase courte",
-  "Scène 7 Non non non : phrase courte",
-  "Scène 8 La bêtise : phrase courte",
-  "Scène 9 Conséquences : phrase courte",
-  "Scène 10 Au secours : phrase courte",
-  "Scène 11 La leçon : phrase courte",
-  "Scène 12 Comprend : phrase courte",
-  "Scène 13 La promesse : phrase courte",
-  "Scène 14 Et toi : phrase courte",
-  "Scène 15 Au revoir : phrase courte"
+  "Narration Scène 1 : Joyeux bonjour à l'enfant (utilise son prénom [{prenom}]) et annonce fascinante de l'histoire sur son ami [{hero}] (choisis un autre prénom aléatoire si c'est 'Par défaut' -- NE PAS utiliser le vrai prénom de l'enfant original). IMPÉRATIF : Utilise ce héros [{hero}] tout au long de l'histoire !",
+  "Narration Scène 2 : Phrase créative décrivant ce que [{hero}] (le personnage principal) est en train de faire.",
+  "Narration Scène 3 : Autre phrase décrivant l'activité de [{hero}]. (Ne dis jamais 'l'enfant', utilise toujours son nom !) ",
+  "Narration Scène 4 : [{hero}] découvre soudainement un nouvel objet (le danger).",
+  "Narration Scène 5 : [{hero}] observe l'objet avec une grande curiosité.",
+  "Narration Scène 6 : La tentation grandit, [{hero}] s'approche doucement...",
+  "Narration Scène 7 : Un énorme suspense dramatique ! Est-ce que [{hero}] va le faire ?",
+  "Narration Scène 8 : Le point de bascule ! [{hero}] commet l'interdit ! (Ton dramatique)",
+  "Narration Scène 9 : Le contrecoup immédiat ! Très grosse frayeur ou accident réaliste pour [{hero}].",
+  "Narration Scène 10 : [{hero}] réalise sa terrible erreur avec beaucoup d'émotion.",
+  "Narration Scène 11 : [{hero}] appelle à l'aide ou panique totale.",
+  "Narration Scène 12 : Le conteur explique à [{hero}] POURQUOI c'est interdit (belle leçon créative).",
+  "Narration Scène 13 : [{hero}] écoute et comprend avec tristesse son erreur.",
+  "Narration Scène 14 : [{hero}] fait la promesse solennelle de ne jamais recommencer.",
+  "Narration Scène 15 : Adresse-toi directement à l'enfant spectateur [{prenom}] pour récapituler la bêtise de [{hero}], et conclus positivement."
 ],
 "image_prompts":[
-  "Describe scene 1 background in English (e.g. colorful living room)",
-  "Describe scene 2 background in English based on story",
-  "Describe scene 3 background in English based on story",
-  "Describe scene 4 background in English based on story",
-  "Describe scene 5 background in English based on story",
-  "Describe scene 6 background in English based on story",
-  "Describe scene 7 background in English based on story",
-  "Describe scene 8 background in English based on story",
-  "Describe scene 9 background in English based on story",
-  "Describe scene 10 background in English based on story",
-  "Describe scene 11 background in English based on story",
-  "Describe scene 12 background in English based on story",
-  "Describe scene 13 background in English based on story",
-  "Describe scene 14 background in English based on story",
-  "Describe scene 15 background in English based on story"
+  "Describe scene 1 background in English. IMPORTANT: Include the main hero [{hero}]. Include friends/companions ONLY IF they are actively relevant to this scene's story.",
+  "Describe scene 2 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 3 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 4 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 5 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 6 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 7 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 8 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 9 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 10 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 11 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 12 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 13 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 14 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
+  "Describe scene 15 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story."
 ],
-"song":{{"titre":"La Chanson de {prenom} et [danger]",
+"lieux_scenes":[
+  "phrase courte (1-3 mots max) avec 1 emoji pour indiquer le lieu exact de la scène 1 (ex: 🏠 Dans la cuisine)",
+  "phrase courte avec emoji lieu de la scène 2",
+  "phrase courte avec emoji lieu de la scène 3",
+  "phrase courte avec emoji lieu de la scène 4",
+  "phrase courte avec emoji lieu de la scène 5",
+  "phrase courte avec emoji lieu de la scène 6",
+  "phrase courte avec emoji lieu de la scène 7",
+  "phrase courte avec emoji lieu de la scène 8",
+  "phrase courte avec emoji lieu de la scène 9",
+  "phrase courte avec emoji lieu de la scène 10",
+  "phrase courte avec emoji lieu de la scène 11",
+  "phrase courte avec emoji lieu de la scène 12",
+  "phrase courte avec emoji lieu de la scène 13",
+  "phrase courte avec emoji lieu de la scène 14",
+  "phrase courte avec emoji lieu de la scène 15"
+],
+"emotions_personnage":[
+  "phrase courte indiquant l'humeur absolue du personnage qui a fait la bêtise, en utilisant SON NOM EXACT à lui (ex: 'Humeur de [Nom du Héros choisi par toi] : joyeux')",
+  "phrase indiquant l'humeur du personnage principal scène 2",
+  "phrase indiquant l'humeur du personnage principal scène 3",
+  "phrase indiquant l'humeur du personnage principal scène 4",
+  "phrase indiquant l'humeur du personnage principal scène 5",
+  "phrase indiquant l'humeur du personnage principal scène 6",
+  "phrase indiquant l'humeur du personnage principal scène 7",
+  "phrase indiquant l'humeur du personnage principal scène 8",
+  "phrase indiquant l'humeur du personnage principal scène 9",
+  "phrase indiquant l'humeur du personnage principal scène 10",
+  "phrase indiquant l'humeur du personnage principal scène 11",
+  "phrase indiquant l'humeur du personnage principal scène 12",
+  "phrase indiquant l'humeur du personnage principal scène 13",
+  "phrase indiquant l'humeur du personnage principal scène 14",
+  "phrase indiquant l'humeur du personnage principal scène 15"
+],
+"song":{{"titre":"La Chanson de {prenom} et [danger] (style {hero})",
 "intro":"2-3 phrases d'accroche rimées","acte1":"vie normale 3-4 phrases rimées",
 "acte2":"découverte objet dangereux 3-4 phrases rimées",
 "refrain1":"avertissement NON NON NON 3-4 phrases rimées",
-"acte3":"commet la bêtise 2-3 phrases dramatiques",
-"acte4":"conséquence terrible 3-4 phrases rimées",
-"refrain2":"leçon et bonne solution 3-4 phrases rimées",
-"acte5":"comprend et pleure 3-4 phrases émouvantes",
-"acte6":"promesse solennelle 3-4 phrases rimées",
-"outro":"message direct à l'enfant spectateur 2-3 phrases"}}}}
+"acte3":"le héros fait EXPLICITEMENT la bêtise 2-3 phrases dramatiques",
+"acte4":"la conséquence effrayante (se fait mal/peur) 3-4 phrases rimées",
+"refrain2":"l'explication pédagogique : voilà pourquoi c'est interdit",
+"acte5":"comprend son erreur et regrette 3-4 phrases émouvantes",
+"acte6":"promesse de ne plus recommencer 3-4 phrases rimées",
+"outro":"message direct au spectateur pour qu'il ne fasse pas la bêtise"}}}}
 Phrase : {betise}"""
 
 # ─────────────────────────────────────────
@@ -215,21 +257,120 @@ def _call(api_key: str, prompt: str, max_tok: int = 800) -> dict:
 def validate_ai(betise: str, api_key: str) -> dict:
     return _call(api_key, VAL_PROMPT.replace("{betise}", betise), 900)
 
+# ─────────────────────────────────────────
+#  CHAT PROMPT — conversation libre + détection scénario
+# ─────────────────────────────────────────
+CHAT_PROMPT = """
+Tu es un assistant pédagogique chaleureux et compréhensif. Tu parles UNIQUEMENT français.
+Tu aides les PARENTS avec l'éducation de leur enfant.
+
+Règle 1 — CONVERSATION GÉNÉRALE :
+Si le parent salue, pose une question, ou demande une explication, réponds TOUJOURS avec un ton adapté aux enfants, simple et éducatif. 
+Exemples : "Un danger, c'est quelque chose qui peut nous faire du mal...", "Bonjour ! Comment allez-vous aujourd'hui ?"
+Pas de limite de mots stricte, sois naturel et utile. Informe le parent que tu es là pour l'aider.
+
+Règle 2 — DÉTECTION (MODE SCÉNARIO) :
+Dès que le parent décrit N'IMPORTE QUELLE situation inquiétante, bêtise, ou comportement dangereux, ou demande de l'aide sur une action spécifique :
+Exemples : "Mon fils fait des bêtises avec...", "Ma fille n'arrête pas de...", "Mon enfant touche à...", "Que faire quand mon enfant...", "Aide-moi, mon petit..."
+  → ACTIVE IMMÉDIATEMENT le mode scénario.
+  → Prénom et âge sont OPTIONNELS (utilise "l'enfant" et null pour l'âge si absents).
+  → Ta réponse : phrase de confirmation empathique courte.
+
+Règle 3 — MISES À JOUR ET CORRECTIONS (CRUCIAL) :
+Le message du parent peut contenir la balise "[CORRECTION DU PARENT]". 
+Ce qui suit cette balise est la NOUVELLE consigne absolue. Tu DOIS écraser et remplacer l'ancien prénom, l'ancien âge, l'ancien genre ou l'ancien comportement par ce qui est dit dans la correction.
+Exemple : "... [CORRECTION DU PARENT] : Salma 8 ans" -> Renvoyer prénom "Salma" et âge 8. Oublier tout prénom ou âge précédent.
+Exemple : "... [CORRECTION DU PARENT] : c'est un garçon" -> Renvoyer genre "garçon".
+
+SUGGESTIONS D'ENRICHISSEMENT (Mode Scénario) : 
+Si le scénario manque de détails contextuels, génère 1 à 3 suggestions COURTES (ex: "dès que j'ai le dos tourné").
+IMPORTANT : Si l'histoire du parent est DÉJÀ très complète, ou si rajouter des détails serait répétitif et inutile, renvoie strictement une liste VIDE []. Ne génère jamais de suggestions artificielles juste pour remplir.
+
+Réponds UNIQUEMENT en JSON valide sans markdown :
+
+Pour comportement inquiétant/corrigible :
+{{"type":"scenario","response":"",
+"valide":true,"raison":"(Doit toujours être true)",
+"prenom":"prénom (ou 'Votre enfant')","age":null,"genre":"garçon ou fille",
+"hero":"nom du héros (ex: Spiderman, Dora, ou 'Par défaut')",
+"danger":"description courte du comportement",
+"theme":"general", // CHOISIS UN SEUL MOT EXACT PARMI : electric, kitchen, meds, pool, road, fire, behaviour, general
+"comprehension":"Il fait [comportement].",
+"conseils":["conseil 1","conseil 2","conseil 3"],
+"message_educatif":"Phrase courte pour l'enfant (SANS AUCUN GUILLEMET POUR NE PAS CASSER LE JSON)",
+"scenes":["scène 1 (action)","scène 2 (bêtise)","scène 3 (conséquence)","scène 4 (leçon)"],
+"message_parent":"Ne vous inquiétez pas, on va corriger ça ensemble !",
+"suggestions":["suggestion 1"]}}
+
+Pour conversation générale :
+{{"type":"general","response":"ta réponse naturelle, simple, éducative et adaptée."}}
+
+Pour hors sujet :
+{{"type":"invalid","response":"Je suis spécialisé dans les comportements des enfants.",
+"suggestions":["Mon enfant frappe ses amis","Ma fille touche les prises"]}}
+
+Message du parent : {message}
+"""
+
+def chat_ai(message: str, api_key: str, current_state: dict = None) -> dict:
+    """Analyse le message et retourne type general/scenario/invalid + réponse."""
+    prompt = CHAT_PROMPT.replace("{message}", message)
+    if current_state and current_state.get("type") == "scenario":
+        prompt += f"\n\nÉTAT ACTUEL : Prénom='{current_state.get('prenom')}', Âge={current_state.get('age')}, Genre={current_state.get('genre')}"
+        prompt += "\n⚠️ INSTRUCTION SPECIALE : Tu dois utiliser ces valeurs de l'état actuel SAUF SI la balise [CORRECTION DU PARENT] vient les contredire. Dans ce cas, modifie l'état actuel et remplace-le obligatoirement par la correction."
+        
+    res = _call(api_key, prompt, 1500)
+    if res.get("type") == "scenario":
+        pre = res.get("prenom") or "Votre enfant"
+        age = res.get("age")
+        hero = res.get("hero", "Par défaut")
+        
+        hero_str = f" (Héros: {hero})" if hero and hero != "Par défaut" else ""
+        enfant_info = f"{pre}, {age} ans{hero_str}" if age else f"{pre}{hero_str}"
+        
+        danger = res.get("danger", "ce comportement")
+        msg_edu = res.get("message_educatif", "On va apprendre à corriger cela.")
+        scenes = res.get("scenes", ["[Scène 1]", "[Scène 2]", "[Scène 3]", "[Scène 4]"])
+        scenes_str = "\n".join(f"- {s}" for s in scenes)
+        res["response"] = (
+            f"✅ J'ai bien compris la situation !\n\n"
+            f"Voici ce que je vais mettre dans la vidéo :\n\n"
+            f"👤 ENFANT : {enfant_info}\n"
+            f"⚠️ DANGER : {danger}\n"
+            f"📖 MESSAGE ÉDUCATIF : \"{msg_edu}\"\n\n"
+            f"🎨 IMAGES DANS LA VIDÉO :\n{scenes_str}"
+        )
+    return res
+
 def scenario_ai(betise: str, val: dict, api_key: str) -> dict:
-    t = THEMES.get(val.get("theme", "general"), THEMES["general"])
+    theme_val = val.get("theme") or "general"
+    t = THEMES.get(theme_val, THEMES["general"])
     p = SCN_PROMPT.replace("{betise}", betise).replace("{theme_desc}", t["desc"])
-    p = p.replace("{prenom}", val.get("prenom", "l'enfant"))
-    p = p.replace("{age}", str(val.get("age", 5)))
-    p = p.replace("{genre}", val.get("genre", "garçon"))
+    prenom = val.get("prenom") or "l'enfant"
+    age = val.get("age") or 5
+    genre = val.get("genre") or "garçon"
+    hero = val.get("hero") or "Par défaut"
+    p = p.replace("{prenom}", str(prenom))
+    p = p.replace("{age}", str(age))
+    p = p.replace("{genre}", str(genre))
+    p = p.replace("{hero}", str(hero))
+    
+    if hero and hero != "Par défaut":
+        p += f"\n\n🚨 INSTRUCTION ABSOLUE : Le parent a choisi le héros '{hero}'. Ce héros ({hero}) DOIT ÊTRE LE PERSONNAGE PRINCIPAL de l'histoire et de la chanson ! C'est {hero} qui fait la bêtise et qui apprend la leçon, PAS un personnage secondaire qui vient l'aider !"
+        
     return _call(api_key, p, 3000)
 
 def parse_scenario(d: dict) -> tuple:
-    char = Character(prenom=d.get("prenom",""), age=int(d.get("age",5)), genre=d.get("genre","garçon"))
-    s = d["song"]
-    song = SongData(titre=s.get("titre",""), intro=s.get("intro",""), acte1=s.get("acte1",""),
-        acte2=s.get("acte2",""), refrain1=s.get("refrain1",""), acte3=s.get("acte3",""),
-        acte4=s.get("acte4",""), refrain2=s.get("refrain2",""), acte5=s.get("acte5",""),
-        acte6=s.get("acte6",""), outro=s.get("outro",""))
+    prenom = d.get("prenom") or ""
+    age = d.get("age") or 5
+    genre = d.get("genre") or "garçon"
+    hero = d.get("hero") or "Par défaut"
+    char = Character(prenom=str(prenom), age=int(age), genre=str(genre), hero=str(hero))
+    s = d.get("song", {})
+    song = SongData(titre=s.get("titre",f"Chanson de {char.prenom}"), intro=s.get("intro","..."), acte1=s.get("acte1","..."),
+        acte2=s.get("acte2","..."), refrain1=s.get("refrain1","..."), acte3=s.get("acte3","..."),
+        acte4=s.get("acte4","..."), refrain2=s.get("refrain2","..."), acte5=s.get("acte5","..."),
+        acte6=s.get("acte6","..."), outro=s.get("outro","..."))
     # Récupère les 15 narrations générées par l'IA
     raw_narr = d.get("scenes_narration", [])
     # Nettoie les narrations (retire le préfixe "Scène X : " si présent)
@@ -241,21 +382,21 @@ def parse_scenario(d: dict) -> tuple:
         narrations.append(txt)
     # Complète si l'IA donne moins de 15 narrations
     defaults = [
-        f"{char.prenom} est prêt pour l'aventure !",
-        f"{char.prenom} joue joyeusement.",
-        "Une belle journée commence.",
-        "Quelque chose attire son attention...",
-        "Une idée dangereuse germe...",
-        "ATTENTION ! C'est dangereux !",
-        "Non non non ! N'fais pas ça !",
-        f"{char.prenom} n'écoute pas...",
-        "Oh non ! Les conséquences arrivent !",
-        "Au secours ! À l'aide !",
-        "Voilà ce qu'il faut faire.",
-        f"{char.prenom} comprend sa bêtise.",
-        "Une promesse solennelle est faite.",
-        "Et toi, tu ferais comment ?",
-        "Bravo d'avoir appris avec nous !",
+        f"Voici {char.prenom}.",
+        f"{char.prenom} joue joyeusement aujourd'hui.",
+        "Oh, regarde ce qu'il y a là !",
+        "Il s'approche, c'est très tentant.",
+        "Est-ce qu'il doit toucher ?",
+        "Attention, c'est dangereux !",
+        "Mais il n'écoute pas...",
+        "Oh non, il fait la bêtise !",
+        "Aïe ! Ça s'est très mal passé !",
+        "Il a mal et demande de l'aide !",
+        "Voilà pourquoi il ne fallait pas le faire.",
+        "C'est très dangereux !",
+        f"Maintenant, {char.prenom} a bien compris le danger.",
+        "Il promet de ne plus jamais recommencer.",
+        "Et toi aussi, sois très prudent !",
     ]
     while len(narrations) < 15:
         narrations.append(defaults[len(narrations)])
@@ -264,23 +405,21 @@ def parse_scenario(d: dict) -> tuple:
     while len(img_prompts) < 15:
         img_prompts.append("beautiful landscape, children book illustration style, detailed scene")
         
-    return char, song, narrations[:15], img_prompts[:15]
+    ep = d.get("emotions_personnage", [])
+    while len(ep) < 15:
+        ep.append("détendu")
+        
+    ls = d.get("lieux_scenes", [])
+    while len(ls) < 15:
+        ls.append("📍 Quelque part")
+        
+    return char, song, narrations[:15], img_prompts[:15], ep[:15], ls[:15]
 
-# ─────────────────────────────────────────
-#  LABELS DE LIEU (affichés dans la vidéo)
-# ─────────────────────────────────────────
-DECOR_LABELS = {
-    "maison":  "🏠 Dans la maison",
-    "parc":    "🌳 Dans le parc",
-    "danger":  "⚠️ Zone de danger",
-    "cuisine": "🍳 Dans la cuisine",
-    "rue":     "🚦 Dans la rue",
-    "piscine": "🏊 Bord de piscine",
-    "bain":    "🛁 Salle de bain",
-}
+# L'ancien dictionnaire DECOR_LABELS a été entièrement retiré car les lieux sont générés 100% par l'IA.
 
-def build_scenes(char: Character, song: SongData, tk: str, narrations: list, img_prompts: list) -> List[Scene]:
-    p = char.prenom; f = Cfg.FPS
+def build_scenes(char: Character, song: SongData, tk: str, narrations: list, img_prompts: list, ep: list, ls: list, dframes: list) -> List[Scene]:
+    p = char.hero if char.hero and char.hero != "Par défaut" else char.prenom
+    f = Cfg.FPS
     dm = {"electric": ["maison","parc","maison","maison","maison","danger"]+["parc"]*9,
           "kitchen":  ["maison","parc","maison","maison","maison","danger"]+["parc"]*9,
           "pool":     ["parc"]*3+["danger"]*3+["parc"]*9,
@@ -290,21 +429,21 @@ def build_scenes(char: Character, song: SongData, tk: str, narrations: list, img
     n = narrations  # alias court
     ip = img_prompts
     return [
-        Scene("Introduction",    "Intro",    d[0],  "saute_joie",       "heureux",   n[0],  f*5,  "day",    "intro", ip[0]),
-        Scene(f"La vie de {p}", "Acte I",   d[1],  "court_vite",       "heureux",   n[1],  f*5,  "day",    "acte1", ip[1]),
-        Scene("Belle journée",  "Acte I",   d[2],  "marche_content",   "heureux",   n[2],  f*4,  "golden", "acte1", ip[2]),
-        Scene("Qu'est-ce?",     "Acte II",  d[3],  "decouvre_surpris", "curieux",   n[3],  f*5,  "golden", "acte2", ip[3]),
-        Scene("Une idée...",    "Acte II",  d[4],  "hesite_balance",   "penseur",   n[4],  f*4,  "golden", "acte2", ip[4]),
-        Scene("⚠️ ATTENTION!",  "Refrain",  d[5],  "appelle_gestes",   "effraye",   n[5],  f*5,  "day",    "refrain1", ip[5]),
-        Scene("NON NON NON!",   "Refrain",  d[6],  "saute_peur",       "effraye",   n[6],  f*4,  "day",    "refrain1", ip[6]),
-        Scene("La bêtise!",     "Acte III", d[7],  "fait_betise_saute","curieux",   n[7],  f*6,  "dusk",   "acte3", ip[7]),
-        Scene("Conséquences!",  "Acte IV",  d[8],  "court_panique",    "effraye",   n[8],  f*6,  "dusk",   "acte4", ip[8]),
-        Scene("AU SECOURS!",    "Acte IV",  d[9],  "appelle_gestes",   "effraye",   n[9],  f*5,  "dusk",   "acte4", ip[9]),
-        Scene("La leçon",       "Refrain",  d[10], "ecoute_hoche",     "desole",    n[10], f*5,  "day",    "refrain2", ip[10]),
-        Scene(f"{p} comprend",  "Acte V",   d[11], "pleure_assise",    "triste",    n[11], f*6,  "day",    "acte5", ip[11]),
-        Scene("La promesse",    "Acte VI",  d[12], "saute_promesse",   "determine", n[12], f*5,  "day",    "acte6", ip[12]),
-        Scene("Et toi?",        "Outro",    d[13], "pointe_enfant",    "heureux",   n[13], f*5,  "day",    "outro", ip[13]),
-        Scene("À bientôt!",     "Outro",    d[14], "salue_saute",      "fier",      n[14], f*4,  "day",    "outro", ip[14]),
+        Scene("Introduction",    d[0],  "saute_joie",       "heureux",   n[0],  dframes[0],  "day",    ip[0], ep[0], ls[0]),
+        Scene(f"La vie de {p}", d[1],  "court_vite",       "heureux",   n[1],  dframes[1],  "day",    ip[1], ep[1], ls[1]),
+        Scene("Belle journée",  d[2],  "marche_content",   "heureux",   n[2],  dframes[2],  "golden", ip[2], ep[2], ls[2]),
+        Scene("Qu'est-ce?",     d[3],  "decouvre_surpris", "curieux",   n[3],  dframes[3],  "golden", ip[3], ep[3], ls[3]),
+        Scene("Une idée...",    d[4],  "hesite_balance",   "penseur",   n[4],  dframes[4],  "golden", ip[4], ep[4], ls[4]),
+        Scene("⚠️ ATTENTION!",  d[5],  "appelle_gestes",   "effraye",   n[5],  dframes[5],  "day",    ip[5], ep[5], ls[5]),
+        Scene("NON NON NON!",   d[6],  "saute_peur",       "effraye",   n[6],  dframes[6],  "day",    ip[6], ep[6], ls[6]),
+        Scene("La bêtise!",     d[7],  "fait_betise_saute","curieux",   n[7],  dframes[7],  "dusk",   ip[7], ep[7], ls[7]),
+        Scene("Conséquences!",  d[8],  "court_panique",    "effraye",   n[8],  dframes[8],  "dusk",   ip[8], ep[8], ls[8]),
+        Scene("AU SECOURS!",    d[9],  "appelle_gestes",   "effraye",   n[9],  dframes[9],  "dusk",   ip[9], ep[9], ls[9]),
+        Scene("La leçon",       d[10], "ecoute_hoche",     "desole",    n[10], dframes[10],  "day",    ip[10], ep[10], ls[10]),
+        Scene(f"{p} comprend",  d[11], "pleure_assise",    "triste",    n[11], dframes[11],  "day",    ip[11], ep[11], ls[11]),
+        Scene("La promesse",    d[12], "saute_promesse",   "determine", n[12], dframes[12],  "day",    ip[12], ep[12], ls[12]),
+        Scene("Et toi?",        d[13], "pointe_enfant",    "heureux",   n[13], dframes[13],  "day",    ip[13], ep[13], ls[13]),
+        Scene("À bientôt!",     d[14], "salue_saute",      "fier",      n[14], dframes[14],  "day",    ip[14], ep[14], ls[14]),
     ]
 
 # ─────────────────────────────────────────
@@ -312,7 +451,7 @@ def build_scenes(char: Character, song: SongData, tk: str, narrations: list, img
 # ─────────────────────────────────────────
 class P:
     SKIN=(255,232,205);CHEEK=(255,175,165);HAIR_B=(55,38,18);HAIR_G=(195,135,70)
-    SHIRT_B=(70,130,255);SHIRT_G=(255,120,175);PANTS=(45,85,195);SHOE=(175,48,48)
+    SHIRT_B=(135,206,235);SHIRT_G=(255,20,147);PANTS=(45,85,195);SHOE=(175,48,48)
     EYE_B=(80,160,255);EYE_G=(255,100,195);WHITE=(255,255,255);OUTLINE=(30,20,10)
     SUN=(255,245,100);TEAR=(90,195,255);FLAME_C=(255,230,80)
     ROOF=(185,80,60);DOOR=(110,65,35);WINDOW=(180,220,255)
@@ -383,28 +522,51 @@ def anim_off(action,frame):
     if action=="pleure_assise": return 0,int(Cfg.SIZE*.04)
     return 0,int(3*math.sin(frame*.07))
 
-def draw_char(draw,cx,cy,action,emotion,frame,genre):
-    S=Cfg.SIZE; dx,dy=anim_off(action,frame); x,y=cx+dx,cy+dy
+def draw_char(draw,cx,cy,action,emotion,frame,genre,hero="Par défaut",is_narrating=True):
+    S=int(Cfg.SIZE * 0.75); dx,dy=anim_off(action,frame); x,y=cx+dx,cy+dy
     shirt=P.SHIRT_G if genre=="fille" else P.SHIRT_B
     hair=P.HAIR_G if genre=="fille" else P.HAIR_B
     eye_c=P.EYE_G if genre=="fille" else P.EYE_B
+    pants=P.PANTS
+    shoe=P.SHOE
+    skin=P.SKIN
+    
+    # -- GESTION DES HÉROS SPÉCIFIQUES --
+    h = str(hero).lower()
+    if "spider" in h:
+        shirt=(220,30,30); pants=(40,60,180); shoe=(220,30,30); hair=(220,30,30); skin=(220,30,30)
+    elif "super" in h:
+        shirt=(40,60,200); pants=(220,30,30); hair=(20,20,20)
+    elif "masha" in h:
+        shirt=(200,50,150); pants=(200,50,150); hair=(200,50,150)
+    elif "dora" in h:
+        shirt=(240,100,180); pants=(250,140,40); hair=(60,30,10)
+    elif "elsa" in h or "neige" in h:
+        shirt=(120,220,255); pants=(120,220,255); hair=(255,250,210)
+    elif "batman" in h:
+        shirt=(50,50,50); pants=(30,30,30); shoe=(20,20,20); hair=(30,30,30)
+    elif "jerry" in h:
+        skin=(140,90,50); shirt=(140,90,50); pants=(140,90,50); hair=(140,90,50)
+    elif "tom" in h:
+        skin=(120,130,150); shirt=(120,130,150); pants=(120,130,150); hair=(120,130,150)
+
     draw.ellipse([cx-int(S*.06),cy+int(S*.015),cx+int(S*.06),cy+int(S*.03)],fill=(30,30,30))
     if emotion=="triste": shirt=lc(shirt,(130,130,160),.4)
     elif emotion=="effraye": shirt=lc(shirt,(180,180,190),.35)
     draw.ellipse([x-int(S*.05),y-int(S*.04),x+int(S*.05),y+int(S*.075)],fill=shirt,outline=P.OUTLINE,width=2)
     if action=="pleure_assise":
-        draw.ellipse([x-int(S*.06),y+int(S*.07),x+int(S*.01),y+int(S*.13)],fill=P.PANTS,outline=P.OUTLINE,width=2)
-        draw.ellipse([x+int(S*.01),y+int(S*.07),x+int(S*.06),y+int(S*.13)],fill=P.PANTS,outline=P.OUTLINE,width=2)
+        draw.ellipse([x-int(S*.06),y+int(S*.07),x+int(S*.01),y+int(S*.13)],fill=pants,outline=P.OUTLINE,width=2)
+        draw.ellipse([x+int(S*.01),y+int(S*.07),x+int(S*.06),y+int(S*.13)],fill=pants,outline=P.OUTLINE,width=2)
     else:
         sw=int(20*math.sin(frame*.2))if action in("court_vite","marche_content","court_panique")else 3
-        draw.line([x-int(S*.02),y+int(S*.065),x-int(S*.03)-sw,y+int(S*.12)],fill=P.PANTS,width=int(S*.022))
-        draw.line([x+int(S*.02),y+int(S*.065),x+int(S*.03)+sw,y+int(S*.12)],fill=P.PANTS,width=int(S*.022))
-        draw.ellipse([x-int(S*.05)-sw,y+int(S*.11),x-int(S*.01)-sw,y+int(S*.135)],fill=P.SHOE,outline=P.OUTLINE,width=2)
-        draw.ellipse([x+int(S*.01)+sw,y+int(S*.11),x+int(S*.05)+sw,y+int(S*.135)],fill=P.SHOE,outline=P.OUTLINE,width=2)
-    sk=P.SKIN
+        draw.line([x-int(S*.02),y+int(S*.065),x-int(S*.03)-sw,y+int(S*.12)],fill=pants,width=int(S*.022))
+        draw.line([x+int(S*.02),y+int(S*.065),x+int(S*.03)+sw,y+int(S*.12)],fill=pants,width=int(S*.022))
+        draw.ellipse([x-int(S*.05)-sw,y+int(S*.11),x-int(S*.01)-sw,y+int(S*.135)],fill=shoe,outline=P.OUTLINE,width=2)
+        draw.ellipse([x+int(S*.01)+sw,y+int(S*.11),x+int(S*.05)+sw,y+int(S*.135)],fill=shoe,outline=P.OUTLINE,width=2)
+    
     def arm(x1,y1,x2,y2):
-        draw.line([x1,y1,x2,y2],fill=sk,width=int(S*.018))
-        draw.ellipse([x2-5,y2-5,x2+5,y2+5],fill=sk,outline=P.OUTLINE,width=1)
+        draw.line([x1,y1,x2,y2],fill=skin,width=int(S*.018))
+        draw.ellipse([x2-5,y2-5,x2+5,y2+5],fill=skin,outline=P.OUTLINE,width=1)
     sw2=int(22*math.sin(frame*.18))
     if action=="saute_joie":
         arm(x-int(S*.046),y-int(S*.008),x-int(S*.084),y-int(S*.078))
@@ -422,8 +584,8 @@ def draw_char(draw,cx,cy,action,emotion,frame,genre):
         arm(x+int(S*.046),y-t2,x+int(S*.075),y-int(S*.05)-t2)
     elif action=="pointe_enfant":
         arm(x-int(S*.046),y,x-int(S*.06),y+int(S*.022))
-        draw.line([x+int(S*.046),y,x+int(S*.1),y-int(S*.02)],fill=sk,width=int(S*.018))
-        draw.ellipse([x+int(S*.094),y-int(S*.035),x+int(S*.116),y-int(S*.013)],fill=sk,outline=P.OUTLINE,width=1)
+        draw.line([x+int(S*.046),y,x+int(S*.1),y-int(S*.02)],fill=skin,width=int(S*.018))
+        draw.ellipse([x+int(S*.094),y-int(S*.035),x+int(S*.116),y-int(S*.013)],fill=skin,outline=P.OUTLINE,width=1)
     elif action in("saute_promesse","salue_saute"):
         arm(x-int(S*.046),y,x-int(S*.06),y+int(S*.025))
         arm(x+int(S*.046),y,x+int(S*.08),y-int(S*.086))
@@ -440,7 +602,7 @@ def draw_char(draw,cx,cy,action,emotion,frame,genre):
         arm(x-int(S*.046),y,x-int(S*.062),y+int(S*.022))
         arm(x+int(S*.046),y,x+int(S*.062),y+int(S*.022))
     hy=y-int(S*.13)
-    draw.ellipse([x-int(S*.066),hy,x+int(S*.066),hy+int(S*.136)],fill=P.SKIN,outline=P.OUTLINE,width=2)
+    draw.ellipse([x-int(S*.066),hy,x+int(S*.066),hy+int(S*.136)],fill=skin,outline=P.OUTLINE,width=2)
     draw.arc([x-int(S*.064),hy,x+int(S*.064),hy+int(S*.07)],180,0,fill=hair,width=10)
     if genre=="fille":
         draw.rectangle([x-int(S*.07),hy+int(S*.012),x-int(S*.042),hy+int(S*.094)],fill=hair)
@@ -461,7 +623,10 @@ def draw_char(draw,cx,cy,action,emotion,frame,genre):
     draw.ellipse([x-int(S*.076),ey+5,x-int(S*.044),ey+20],fill=P.CHEEK)
     draw.ellipse([x+int(S*.044),ey+5,x+int(S*.076),ey+20],fill=P.CHEEK)
     my2=hy+int(S*.096)
-    if emotion in("heureux","fier","determine"): draw.arc([x-10,my2-5,x+10,my2+8],0,180,fill=(185,65,65),width=3)
+    is_talking = is_narrating and ((frame % 20) < 10)
+    mouth_h = 4 + int(6 * abs(math.sin(frame * 0.5))) if is_talking else 2
+    if is_talking: draw.ellipse([x-4, my2-2, x+4, my2+mouth_h], fill=(80,10,10))
+    elif emotion in("heureux","fier","determine"): draw.arc([x-10,my2-5,x+10,my2+8],0,180,fill=(185,65,65),width=3)
     elif emotion in("triste","desole"): draw.arc([x-10,my2+5,x+10,my2+14],180,0,fill=(178,65,65),width=3)
     elif emotion in("surpris","effraye"): draw.ellipse([x-9,my2-2,x+9,my2+14],fill=(135,48,48))
     else: draw.line([x-7,my2+6,x+7,my2+6],fill=(168,68,68),width=2)
@@ -487,12 +652,7 @@ def get_fonts():
         d=ImageFont.load_default(); _FONTS={"big":d,"med":d,"small":d}
     return _FONTS
 
-def song_line(song,part):
-    text=getattr(song,part,"")
-    for sep in["...","!","."]:
-        idx=text.find(sep)
-        if idx>15: return text[:idx].strip()
-    return text[:48].strip()
+
 
 def wrap_text(text: str, max_chars: int) -> list:
     """Coupe le texte en lignes de max_chars caractères."""
@@ -526,13 +686,15 @@ def draw_ui(img, scene, f_in, song, genre):
         img.crop((0, 0, S, top_h)).convert("RGBA"), ov), (0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Acte label — gauche, petit violet
-    draw.text((10, 5), scene.acte_label, fill=(110, 70, 200), font=F["small"])
-    # Titre scène — gauche, gras
-    draw.text((10, 22), scene.titre[:32], fill=(20, 20, 60), font=F["med"])
+    # Acte label retiré pour un affichage plus propre. Titre scène recentré.
+    # Titre scène — gauche, gras (centré verticalement dans la barre)
+    draw.text((10, 16), scene.titre[:32], fill=(20, 20, 60), font=F["med"])
 
-    # 📍 Lieu — droite, fond pill arrondi
-    lieu = DECOR_LABELS.get(scene.decor, f"📍 {scene.decor.capitalize()}")
+    # 📍 Lieu — droite, fond pill arrondi généré par l'IA
+    lieu_raw = scene.lieu_texte
+    if isinstance(lieu_raw, list):
+        lieu_raw = lieu_raw[0] if lieu_raw else "📍 Inconnu"
+    lieu = str(lieu_raw) if lieu_raw else "📍 Inconnu"
     try:
         lw = draw.textlength(lieu, font=F["small"])
     except:
@@ -558,12 +720,11 @@ def draw_ui(img, scene, f_in, song, genre):
 
     y0 = S - bot_h + 6
 
-    # ♪ Parole de chanson — italique violet clair
-    sl = song_line(song, scene.song_part)
-    if sl:
-        disp = sl[:44] + "…" if len(sl) > 46 else sl
-        draw.text((12, y0), f"♪ {disp}", fill=(180, 155, 255), font=F["small"])
-        y0 += 20
+    # ✨ L'émotion IA du personnage principal — italique violet clair
+    # L'IA génère maintenant toute la phrase (ex: "Humeur de Spiderman : joyeux")
+    petit_texte = f"💫 {scene.emotion_text}"
+    draw.text((12, y0), petit_texte, fill=(180, 155, 255), font=F["small"])
+    y0 += 20
 
     # Ligne séparatrice
     draw.line([(12, y0), (S - 12, y0)], fill=(80, 60, 160), width=1)
@@ -577,10 +738,10 @@ def draw_ui(img, scene, f_in, song, genre):
         if end_bracket != -1:
             narr = narr[end_bracket + 1:].strip()
     
-    # Couper plus court (25 au lieu de 30) pour laisser place au personnage à droite
-    lines = wrap_text(narr, 25)[:3]
+    # Afficher plus de texte en largeur pour le condenser sur 3 lignes max sans couper le contenu
+    lines = wrap_text(narr, 56)[:3]
     for i, line in enumerate(lines):
-        # Première ligne plus grande
+        # Première ligne un peu plus grande
         font = F["med"] if i == 0 else F["small"]
         color = (255, 252, 220) if i == 0 else (210, 200, 240)
         draw.text((12, y0), line, fill=color, font=font)
@@ -615,7 +776,9 @@ def render_scene(scene, genre, song, gframe, td):
         draw_ui(img, scene, f, song, genre)
 
         # 3. Personnage au premier plan (par dessus l'image et l'interface)
-        draw_char(draw, char_x, char_y, scene.action, scene.emotion, gframe + f, genre)
+        # La narration audio a ~500ms de silence à la fin, soit environ 12 frames
+        is_narrating_now = f < (scene.duree - 12)
+        draw_char(draw, char_x, char_y, scene.action, scene.emotion, gframe + f, genre, hero="Par défaut", is_narrating=is_narrating_now)
         
         frames.append(cv2.cvtColor(np.array(img.convert("RGB")), cv2.COLOR_RGB2BGR))
     return frames
@@ -637,20 +800,61 @@ async def _edge_gen(text,voice,rate,pitch,out):
     comm=edge_tts.Communicate(text=text,voice=voice,rate=rate,pitch=pitch)
     await comm.save(out)
 
-def gen_audio(char,song,folder,ph)->str:
-    secs=[song.intro,"...",song.acte1,"...",song.acte2,"...",song.refrain1,"...",
-          song.acte3,"...",song.acte4,"...",song.refrain2,"...",song.acte5,"...",
-          song.acte6,"...",song.outro,"...",song.refrain2]
-    txt="  ".join(secs)
+def gen_audio(char, narrations, folder, ph) -> tuple:
     voice=Cfg.VF if char.genre=="fille" else Cfg.VG
-    vp=os.path.join(folder,"voix.mp3"); ok=False
-    if _EDGE_TTS_OK:
-        try:
-            ph.info("🎙️ Génération voix neurale..."); asyncio.run(_edge_gen(txt,voice,Cfg.VRATE,Cfg.VPITCH,vp)); ok=True
-        except Exception as e: st.warning(f"edge-tts: {e} → gTTS")
-    if not ok:
-        ph.info("🎙️ Génération voix..."); gTTS(text=txt,lang="fr",slow=True).save(vp)
-    return vp
+    from pydub import AudioSegment
+    import os, time
+    
+    combined_voix = AudioSegment.silent(duration=0)
+    durees_frames = []
+    vp=os.path.join(folder,"voix.mp3")
+    
+    ph.info("🎙️ Génération voix et synchro scène par scène...")
+    for idx, text in enumerate(narrations):
+        # Nettoyer texte des préfixes
+        if "]" in text: text = text.split("]", 1)[-1].strip()
+        if ":" in text: text = text.split(":", 1)[-1].strip()
+        
+        part_path = os.path.join(folder, f"part_{idx}.mp3")
+        ok = False
+        if _EDGE_TTS_OK:
+            try:
+                import edge_tts, asyncio
+                asyncio.run(_edge_gen(text,voice,Cfg.VRATE,Cfg.VPITCH,part_path))
+                ok = True
+            except: pass
+        if not ok:
+            from gtts import gTTS
+            gTTS(text=text,lang="fr",slow=False).save(part_path)
+            
+        seg = AudioSegment.from_file(part_path)
+        # 500ms pause
+        seg = seg + AudioSegment.silent(duration=500)
+        combined_voix += seg
+        
+        dframes = int((len(seg) / 1000.0) * Cfg.FPS)
+        durees_frames.append(dframes)
+        
+    combined_voix.export(vp, format="mp3")
+    
+    try:
+        ph.info("🎵 Mixage dynamique de l'ambiance...")
+        import urllib.request
+        bgm_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+        bgm_path = os.path.join(folder, "bgm.mp3")
+        req = urllib.request.Request(bgm_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as resp, open(bgm_path, 'wb') as f:
+            f.write(resp.read())
+            
+        music_audio = AudioSegment.from_file(bgm_path) - 15
+        while len(music_audio) < len(combined_voix): music_audio += music_audio
+        music_audio = music_audio[:len(combined_voix)]
+        mix = combined_voix.overlay(music_audio)
+        vp_mix = os.path.join(folder, "voix_mix.mp3")
+        mix.export(vp_mix, format="mp3")
+        return vp_mix, durees_frames
+    except Exception as e:
+        return vp, durees_frames
 
 def encode_video(frames,audio,folder,prenom)->str:
     silent=os.path.join(folder,"_s.mp4"); final=os.path.join(folder,f"ANIME_{prenom.upper()}.mp4")
@@ -679,9 +883,16 @@ html,body,.stApp,[data-testid="stAppViewContainer"]{
 [data-testid="stSidebar"]{background:#ffffff!important;border-right:1px solid #e2e8f0;padding-top:1.5rem;}
 .block-container{background:transparent!important;padding-top:1.5rem!important;max-width:820px!important;}
 
-/* Typography */
+/* Typography — NE PAS toucher les bulles de chat */
 h1,h2,h3{color:#0f172a!important;font-family:'Inter',sans-serif!important;}
-p,div,span,label{color:#334155!important;font-family:'Inter',sans-serif!important;}
+p,div,span,label{font-family:'Inter',sans-serif!important;}
+:not(.ds-bubble-user):not(.ds-bubble-user *):not(.ds-bubble-ai):not(.ds-bubble-ai *) {
+    color: inherit;
+}
+/* couleurs générales (sans écraser les bulles) */
+.block-container p, .block-container label,
+.block-container span:not(.ds-time),
+.stMarkdown p { color:#334155; }
 
 /* Hero */
 .hero{background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 60%,#db2777 100%);
@@ -718,11 +929,106 @@ p,div,span,label{color:#334155!important;font-family:'Inter',sans-serif!importan
 .step-lbl.done{color:#16a34a!important;}
 .step-col{display:flex;flex-direction:column;align-items:center;gap:3px;}
 
-/* Validation inline */
-.val-box{border-radius:14px;padding:1.25rem 1.5rem;margin:1rem 0;}
-.val-ok{background:#f0fdf4;border:1.5px solid #86efac;}
-.val-warn{background:#fffbeb;border:1.5px solid #fde68a;}
-.val-err{background:#fef2f2;border:1.5px solid #fca5a5;}
+/* ══════════════════════════════════════
+   CHAT DEEPSEEK — Design épuré
+   ══════════════════════════════════════ */
+
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] > div { width: 100% !important; }
+
+/* — Bulle IA (gauche) — */
+.ds-msg-ai {
+    display: flex; align-items: flex-start; gap: 10px; margin: 8px 0;
+}
+.ds-avatar-ai {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg,#4f46e5,#7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; margin-top: 2px; color: white;
+}
+.ds-bubble-ai {
+    background: #f8fafc;
+    border: 1px solid #e8eaf0;
+    border-radius: 4px 16px 16px 16px;
+    padding: 10px 15px;
+    font-size: 0.91rem; line-height: 1.65;
+    max-width: 85%; word-break: break-word;
+}
+.ds-bubble-ai, .ds-bubble-ai * { color: #1e293b !important; }
+
+/* — Bulle Parent (droite) — */
+.ds-user-wrap {
+    display: flex; flex-direction: column; align-items: flex-end; width: 100%;
+}
+.ds-bubble-user {
+    background: #4f46e5 !important;
+    border-radius: 16px 4px 16px 16px !important;
+    padding: 10px 15px !important;
+    font-size: 0.91rem !important; line-height: 1.65 !important;
+    max-width: 100% !important;
+    word-break: break-word !important; display: inline-block !important;
+}
+.ds-bubble-user, .ds-bubble-user * {
+    color: #ffffff !important; font-family: 'Inter', sans-serif !important;
+}
+
+/* — Cadre principal du chat — */
+/* Cible le container border=True de Streamlit */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+/* Cadre interne (sans border) pour le scroll : retire le style par défaut */
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlockBorderWrapper"] {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+}
+/* Ajustement du padding interne du chat frame */
+.chat-frame-inner {
+    padding: 14px 16px 10px;
+}
+/* Séparateur entre la section messages et l'input */
+.chat-input-sep {
+    border: none; border-top: 1.5px solid #f1f5f9;
+    margin: 6px 0 0;
+}
+/* Conteneur de l'input en bas du cadre */
+.chat-input-wrap {
+    background: #f8fafc;
+    padding: 10px 14px 12px;
+    border-top: 1px solid #eff0f3;
+}
+.ds-time {
+    font-size: 0.62rem; opacity: 0.45; margin-top: 3px;
+    display: block; color: #94a3b8 !important;
+}
+.ds-user-wrap .ds-time { text-align: right; }
+
+/* En-tête chat */
+.chat-section-header {
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px; margin-bottom: 10px;
+}
+.chat-section-header .csh-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+.chat-section-header .csh-title {
+    font-size: 0.95rem; font-weight: 700; color: #1e293b !important; margin: 0 !important;
+}
+.chat-section-header .csh-sub {
+    font-size: 0.75rem; color: #94a3b8 !important; margin-top: 1px;
+}
+
+
 
 /* Char card */
 .char-pill{display:inline-flex;align-items:center;gap:6px;
@@ -753,8 +1059,10 @@ p,div,span,label{color:#334155!important;font-family:'Inter',sans-serif!importan
     align-items:flex-start;gap:6px;}
 
 /* Buttons */
-.stButton>button{border-radius:10px!important;font-weight:700!important;
-    font-size:.88rem!important;transition:all .2s!important;}
+.stButton>button{border-radius:10px!important;font-weight:600!important;
+    font-size:.86rem!important;transition:all .2s!important;
+    background:#e2e8f0!important;border:1px solid #cbd5e1!important;color:#334155!important;}
+.stButton>button:hover{background:#cbd5e1!important;border-color:#e2e8f0!important;}
 .stButton>button[kind="primary"]{
     background:linear-gradient(135deg,#6366f1,#8b5cf6)!important;
     color:#fff!important;border:none!important;
@@ -811,7 +1119,10 @@ def main():
     # ── SESSION ──
     defaults={"step":1,"api_key":"","betise":"","val":None,
               "scenario":None,"char":None,"song":None,"narrations":[],"img_prompts":[],
-              "theme":"general","show_key":False,"analyzing":False}
+              "theme":"general","show_key":False,"analyzing":False,
+              "confirmed_yes":False,"confirmed_no":False,
+              "confirmed_yes":False,"confirmed_no":False,
+              "chat_history":[],"editing_index":None,"editing_content":""}
     for k,v in defaults.items():
         if k not in st.session_state: st.session_state[k]=v
 
@@ -832,29 +1143,25 @@ def main():
         if valid_key: st.success("✅ Clé valide")
         else: st.warning("Clé non renseignée")
 
-        st.markdown('<div class="sb-note">🆓 Clé <b>100% gratuite</b> sur<br>'
-            '<a href="https://console.groq.com" target="_blank">console.groq.com</a><br>'
-            '→ <b>API Keys → Create API Key</b><br><br>'
-            '🔒 Jamais sauvegardée.</div>',unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("**📋 Guide rapide**")
+        st.markdown("**📋 Comment ça marche ?**")
         for i,(ic,txt) in enumerate([
-            ("1️⃣","Copie ta clé Groq ci-dessus"),
-            ("2️⃣","Décris la bêtise de ton enfant"),
-            ("3️⃣","L'IA analyse et génère"),
-            ("4️⃣","Télécharge la vidéo MP4"),
+            ("1️⃣","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
+            ("2️⃣","<b>L'IA analyse</b> et propose un scénario"),
+            ("3️⃣","<b>Personnalisez</b> (Héros, Musique...)"),
+            ("4️⃣","<b>Téléchargez</b> le dessin animé vidéo !"),
         ],1):
-            st.markdown(f'<div class="sb-step">{ic} <span>{txt}</span></div>',unsafe_allow_html=True)
+            st.markdown(f'<div class="sb-step">{ic} <span style="line-height:1.4;">{txt}</span></div>',unsafe_allow_html=True)
 
         if st.session_state.step>1:
             st.markdown("---")
             if st.button("🔄 Recommencer",use_container_width=True):
-                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme"]:
-                    st.session_state[k]=1 if k=="step" else "general"if k=="theme" else[]if k in["narrations","img_prompts"] else""if k=="betise" else None
+                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
+                    st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in ["narrations","img_prompts","chat_history"] else "" if k=="betise" else False if k in ["confirmed_yes","confirmed_no"] else None
                 st.rerun()
 
-    # ── HÉRO ──
+    # ── HÉRÔ ──
     st.markdown("""<div class="hero">
         <h1>🎬 Studio Animé Éducatif</h1>
         <p>Transforme la bêtise de ton enfant en dessin animé éducatif personnalisé ✨</p>
@@ -863,130 +1170,405 @@ def main():
     st.markdown(stepper(st.session_state.step),unsafe_allow_html=True)
 
     # ══════════════════════════════════════
-    #  ÉTAPE 1 — LA BÊTISE + VALIDATION INLINE
+    #  ÉTAPE 1 — CHAT PÉDAGOGIQUE
     # ══════════════════════════════════════
-    if st.session_state.step==1:
-        st.markdown('<div class="card">'
-            '<span class="sec-title">✏️ Décris la bêtise de ton enfant</span></div>',
-            unsafe_allow_html=True)
+    if st.session_state.step == 1:
+        import datetime as _dt
+        import html as _html
+        import streamlit.components.v1 as _cmp
 
-        betise=st.text_area("Bêtise",value=st.session_state.betise,
-            placeholder="Ex : Mon fils Adam, 5 ans, touche les prises électriques avec ses doigts",
-            height=110,label_visibility="collapsed")
-        st.session_state.betise=betise
+        def _ts():
+            return _dt.datetime.now().strftime("%H:%M")
 
-        # Exemples rapides
-        st.markdown('<span class="sec-label">💡 Exemples — clique pour remplir</span>',
-                    unsafe_allow_html=True)
-        cols=st.columns(3)
-        for idx,ex in enumerate(EXAMPLES):
-            with cols[idx%3]:
-                if st.button(f"{ex['icon']} {ex['label']}",key=f"ex{idx}",
-                             use_container_width=True,help=ex["text"]):
-                    st.session_state.betise=ex["text"]
-                    st.session_state.theme=ex["theme"]
-                    st.session_state.val=None
-                    st.rerun()
+        def ds_ai_bubble(content, ts=""):
+            return (
+                '<div class="ds-msg-ai">'
+                '<div class="ds-avatar-ai">🤖</div>'
+                '<div>'
+                f'<div class="ds-bubble-ai">{content}</div>'
+                + (f'<span class="ds-time">{ts}</span>' if ts else '') +
+                '</div></div>'
+            )
 
-        st.markdown("<br>",unsafe_allow_html=True)
+        # ─ EN-TÊTE (hors cadre) ─
+        st.markdown(
+            '<div class="chat-section-header">'
+            '<div class="csh-icon">🎓</div>'
+            '<div>'
+            '<div class="csh-title">Assistant Pédagogique</div>'
+            '<div class="csh-sub">Discutez librement · Détection automatique des situations de danger</div>'
+            '</div></div>',
+            unsafe_allow_html=True
+        )
 
-        # Bouton analyser
-        if not st.session_state.val:
-            if st.button("🔍 Analyser avec l'IA Groq",type="primary",use_container_width=True):
-                if not st.session_state.api_key.strip():
-                    st.error("⚠️ Entre ta clé API Groq dans la barre latérale gauche.")
-                elif not betise.strip():
-                    st.error("⚠️ Décris la bêtise de ton enfant.")
-                elif not _GROQ_OK:
-                    st.error("La bibliothèque `groq` n'est pas installée. Relance l'app.")
+        # ══════════════════════════════════════════════════
+        # CADRE DU CHAT (messages + input)
+        # ══════════════════════════════════════════════════
+        _ei         = st.session_state.get("editing_index", None)
+        _input_key  = f"chat_input_{len(st.session_state.chat_history)}"
+        send_clicked = False
+
+        with st.container(border=True):
+
+            # — Messages scrollables —
+            with st.container(height=280, border=False):
+                # — Bienvenue (déplacé dans la zone scrollable) —
+                st.markdown(
+                    '<div class="chat-frame-inner" style="padding-top:0;">'
+                    + ds_ai_bubble(
+                        "<b>Bonjour ! 👋 Je suis votre Assistant Pédagogique.</b><br>"
+                        "<span style='font-size:0.87rem;'>"
+                        "Décrivez le comportement de votre enfant — je comprends la situation "
+                        "et je génère automatiquement un dessin animé éducatif ✨</span>"
+                    )
+                    + '</div>',
+                    unsafe_allow_html=True
+                )
+                
+                for i, msg in enumerate(st.session_state.chat_history):
+                    txt = _html.escape(msg["content"]).replace("\n", "<br>")
+                    ts  = msg.get("ts", "")
+
+                    if msg["role"] == "ai":
+                        st.markdown(ds_ai_bubble(txt, ts), unsafe_allow_html=True)
+                    else:
+                        if _ei == i:
+                            # Mode édition inline
+                            _, _ez = st.columns([1, 5])
+                            with _ez:
+                                edited = st.text_area(
+                                    "Modifier",
+                                    value=st.session_state.editing_content,
+                                    height=80, label_visibility="collapsed",
+                                    key=f"inline_edit_{i}"
+                                )
+                                st.session_state.editing_content = edited
+                                _ca, _cc = st.columns([1, 1])
+                                with _cc:
+                                    if st.button("✓ Confirmer", key=f"confirm_{i}",
+                                                 type="primary", use_container_width=True):
+                                        new_txt = st.session_state.editing_content.strip()
+                                        if new_txt:
+                                            st.session_state.chat_history[i]["content"] = new_txt
+                                            st.session_state.chat_history = \
+                                                st.session_state.chat_history[:i+1]
+                                            st.session_state.editing_index = None
+                                            st.session_state.editing_content = ""
+                                            st.session_state.val = None
+                                            st.session_state.betise = new_txt
+                                            with st.spinner("🤖 Analyse en cours…"):
+                                                import time; time.sleep(1)
+                                                try:
+                                                    res = chat_ai(new_txt, st.session_state.api_key, st.session_state.val)
+                                                    reply = res.get("response", "Bien reçu !")
+                                                    st.session_state.chat_history.append({"role":"ai","content":reply,"ts":_ts()})
+                                                    st.session_state.val = res if res.get("type")=="scenario" else None
+                                                    if res.get("theme") in THEMES:
+                                                        st.session_state.theme = res["theme"]
+                                                except Exception as e:
+                                                    st.error(f"Erreur : {e}")
+                                            st.rerun()
+                                with _ca:
+                                    if st.button("✕ Annuler", key=f"cancel_{i}",
+                                                 use_container_width=True):
+                                        st.session_state.editing_index = None
+                                        st.session_state.editing_content = ""
+                                        st.rerun()
+                        else:
+                            # Bulle parent à droite
+                            _, _bc = st.columns([2, 5])
+                            with _bc:
+                                st.markdown(
+                                    f'<div class="ds-user-wrap">'
+                                    f'<div class="ds-bubble-user">{txt}</div>'
+                                    + (f'<span class="ds-time">{ts}</span>' if ts else '') +
+                                    '</div>',
+                                    unsafe_allow_html=True
+                                )
+                            _, _mc = st.columns([5, 2])
+                            with _mc:
+                                if st.button("✏️", key=f"mod_{i}",
+                                             help="Modifier ce message"):
+                                    st.session_state.editing_index = i
+                                    st.session_state.editing_content = msg["content"]
+                                    st.rerun()
+
+                # — Enrichissements Actionnables (Minimaliste Pro) —
+                _lv = st.session_state.val
+                if _lv and _lv.get("type") == "scenario" and _lv.get("valide"):
+                    _sugg = _lv.get("suggestions", [])
+                    if _sugg:
+                        st.markdown(
+                            "<div style='margin: 4px 0 6px 45px;'>"
+                            "<span style='font-size:0.68rem; font-weight:700; color:#4f46e5; text-transform:uppercase; letter-spacing:0.06em;'>"
+                            "↳ Suggestions rapides"
+                            "</span>"
+                            "</div>",
+                            unsafe_allow_html=True
+                        )
+                        _jc, _kc = st.columns([0.9, 10])
+                        with _kc:
+                            _sugg_to_show = _sugg[:3]
+                            for _sid, _s in enumerate(_sugg_to_show):
+                                if st.button(_s, key=f"enrich_{_sid}",
+                                             use_container_width=True):
+                                        import html as _html
+                                        _s_clean = _html.unescape(_s)
+                                        # Seulement afficher la suggestion propre dans la petite bulle (pas tout l'historique)
+                                        st.session_state.chat_history.append(
+                                            {"role": "user", "content": _s_clean, "ts": _ts()})
+                                        
+                                        # Construire la consigne de fond pour l'IA
+                                        _nm = f"{st.session_state.betise.rstrip('.,!? ')}\n[CORRECTION DU PARENT] : {_s_clean}"
+                                        st.session_state.betise = _nm
+                                        
+                                        with st.spinner("🤖 Mise à jour du scénario…"):
+                                            import time; time.sleep(1)
+                                            try:
+                                                _r2 = chat_ai(_nm, st.session_state.api_key, st.session_state.val)
+                                                reply2 = _r2.get("response","")
+                                                st.session_state.chat_history.append({"role":"ai","content":reply2,"ts":_ts()})
+                                                if _r2.get("type") == "scenario":
+                                                    st.session_state.val = _r2
+                                                    if _r2.get("theme") in THEMES:
+                                                        st.session_state.theme = _r2["theme"]
+                                            except Exception as _e:
+                                                st.error(f"Erreur : {_e}")
+                                        st.rerun()
+
+                # Auto-scroll en temps réel
+                import time
+                _cmp.html(f"""<script>
+                function forceScroll() {{
+                    try {{
+                        var ws = window.parent.document.querySelectorAll(
+                            '[data-testid="stVerticalBlockBorderWrapper"], [data-testid="stVerticalBlock"]');
+                        if (ws.length > 0) {{
+                            for(var i=0; i<ws.length; i++) {{
+                                if(ws[i].scrollHeight > ws[i].clientHeight) {{
+                                    ws[i].scrollTop = ws[i].scrollHeight;
+                                }}
+                            }}
+                        }}
+                    }} catch(e) {{}}
+                }}
+                forceScroll();
+                setTimeout(forceScroll, 100);
+                setTimeout(forceScroll, 300);
+                setTimeout(forceScroll, 600);
+                </script><div style='display:none;'>{len(st.session_state.chat_history)}</div>""", height=0)
+
+            # — Champ de saisie (Enter = envoyer) —
+            st.markdown('<div class="chat-input-wrap">', unsafe_allow_html=True)
+            with st.form(key="chat_form", enter_to_submit=True, border=False):
+                _fc, _fb = st.columns([11, 1])
+                with _fc:
+                    st.text_area("msg",
+                        placeholder="Décrivez la bêtise de votre enfant… (Entrée pour envoyer)",
+                        height=72, label_visibility="collapsed", key=_input_key)
+                with _fb:
+                    st.markdown("<div style='margin-top:36px;'></div>", unsafe_allow_html=True)
+                    send_clicked = st.form_submit_button("↑", type="primary",
+                                                         use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════════════
+        # LOGIQUE D'ENVOI
+        # ══════════════════════════════════════════════════
+        if send_clicked:
+            _msg = st.session_state.get(_input_key, "").strip()
+            if not st.session_state.api_key.strip():
+                st.error("⚠️ Clé API Groq manquante (barre latérale).")
+            elif not _msg:
+                st.error("⚠️ Écris ton message.")
+            elif not _GROQ_OK:
+                st.error("La bibliothèque `groq` n'est pas installée.")
+            else:
+                if st.session_state.val and st.session_state.val.get("type") == "scenario":
+                    full_msg = f"{st.session_state.betise.rstrip('.,!? ')}\n[CORRECTION DU PARENT] : {_msg}"
                 else:
-                    with st.spinner("🤖 L'IA Groq analyse ta phrase…"):
+                    full_msg = _msg
+                    
+                st.session_state.betise = full_msg
+                
+                st.session_state.chat_history.append(
+                    {"role": "user", "content": _msg, "ts": _ts()})
+                with st.spinner("🤖 Je comprends la situation…"):
+                    import time; time.sleep(1)
+                    try:
+                        res = chat_ai(full_msg, st.session_state.api_key, st.session_state.val)
+                        reply = res.get("response", "Je suis là !")
+                        st.session_state.chat_history.append({"role": "ai", "content": reply, "ts": _ts()})
+                            
+                        # Comme pour l'enrichissement : on garde l'ancien val si c'est pas un scénario
+                        if res.get("type") == "scenario":
+                            st.session_state.val = res
+                            if res.get("theme") in THEMES:
+                                st.session_state.theme = res["theme"]
+                        st.rerun()
+                    except Exception as e:
+                        st.session_state.chat_history.pop()
+                        st.error(f"Erreur API Groq : {e}")
+
+        # ══════════════════════════════════════════════════
+        # ZONE DE DÉCISION — Toujours visible sous le chat
+        # ══════════════════════════════════════════════════
+        _lv = st.session_state.val
+        _ok = bool(_lv and _lv.get("type") == "scenario" and _lv.get("valide"))
+
+        if _ok:
+            _v = _lv
+            _age_str = f" · {_v.get('age')} ans" if _v.get("age") else ""
+            # ── Carte de validation ──
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#f0fdf4,#dcfce7);"
+                "border:1.5px solid #4ade80;border-radius:14px;"
+                "padding:14px 18px;margin-top:14px;'>"
+                "<div style='font-size:0.9rem;font-weight:700;color:#15803d;margin-bottom:6px;'>"
+                f"📌 Scénario prêt : {_v.get('prenom','Votre enfant')}{_age_str} • {_v.get('danger','')}</div>"
+                f"<div style='font-size:0.88rem;color:#166534;opacity:0.85;'>"
+                f"{_v.get('comprehension','')}</div>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+
+            # ── Boutons Actions ──
+            st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+            _bg1, _bg2 = st.columns([3, 1])
+            with _bg1:
+                if st.button(
+                    "🎬  GÉNÉRER LE DESSIN ANIMÉ ÉDUCATIF !",
+                    type="primary", use_container_width=True, key="btn_gen_video"
+                ):
+                    with st.spinner("🎵 Création du scénario animé…"):
                         try:
-                            result=validate_ai(st.session_state.betise,st.session_state.api_key)
-                            st.session_state.val=result
-                            if result.get("theme") in THEMES:
-                                st.session_state.theme=result["theme"]
+                            _data = scenario_ai(
+                                st.session_state.betise, _v, st.session_state.api_key)
+                            st.session_state.scenario = _data
+                            _ch, _sg, _nar, _ipr, _ep, _ls = parse_scenario(_data)
+                            st.session_state.char  = _ch
+                            st.session_state.song  = _sg
+                            st.session_state.narrations  = _nar
+                            st.session_state.img_prompts = _ipr
+                            st.session_state.emotions_personnage = _ep
+                            st.session_state.lieux_scenes = _ls
+                            st.session_state.step = 2
                             st.rerun()
                         except json.JSONDecodeError:
-                            st.error("L'IA n'a pas renvoyé un JSON valide. Réessaie.")
-                        except Exception as e:
-                            st.error(f"Erreur API Groq : {e}")
+                            st.error("Format JSON invalide.")
+                        except Exception as _e:
+                            st.error(f"Erreur : {_e}")
+            with _bg2:
+                if st.button("🔄 Réinterpréter", use_container_width=True, key="btn_reinterp"):
+                    with st.spinner("🤖 Nouvelle réflexion…"):
+                        import time; time.sleep(1)
+                        try:
+                            _r3 = chat_ai(st.session_state.betise, st.session_state.api_key, st.session_state.val)
+                            reply3 = _r3.get("response", "")
+                            st.session_state.chat_history.append({"role": "ai", "content": reply3, "ts": _ts()})
+                            st.session_state.val = _r3 if _r3.get("type")=="scenario" else None
+                            if _r3.get("theme") in THEMES:
+                                st.session_state.theme = _r3["theme"]
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f"Erreur : {_e}")
+        else:
+            # Pas encore de scénario détecté : invite + bouton grisé
+            st.markdown(
+                "<div style='background:#f8fafc;border:1.5px solid #e2e8f0;"
+                "border-radius:14px;padding:14px 18px;margin-top:14px;"
+                "text-align:center;color:#94a3b8;font-size:0.84rem;'>"
+                "💬 Décrivez le comportement de votre enfant pour débloquer la génération vidéo"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            st.button("🎬  Générer le dessin animé éducatif",
+                      type="secondary", use_container_width=True,
+                      key="btn_gen_video", disabled=True)
 
-        # ── RÉSULTAT VALIDATION INLINE ──
-        if st.session_state.val:
-            v=st.session_state.val
-            t=THEMES.get(st.session_state.theme,THEMES["general"])
+        # ══════════════════════════════════════════════════
+        # SUGGESTIONS RAPIDES (déclenchent l'analyse auto)
+        # ─────────────────────────────────────────
+        st.markdown(
+            "<div style='margin-top:16px;margin-bottom:8px;'>"
+            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
+            "text-transform:uppercase;letter-spacing:0.06em;'>💡 Exemples rapides pour commencer</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        def set_example(txt, thm):
+            st.session_state[_input_key] = txt
+            st.session_state.theme = thm
 
-            if v.get("valide"):
-                st.markdown(f"""<div class="val-box val-ok">
-                <div style="font-size:1rem;font-weight:800;color:#166534;margin-bottom:10px;">
-                    ✅ L'IA a bien compris !</div>
-                <p style="font-size:.9rem;color:#15803d;margin:0 0 10px;">
-                    <b>Ce que j'ai compris :</b> {v.get("comprehension","")}
-                </p>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-                    <span class="char-pill">{'👧' if v.get('genre')=='fille' else '👦'} {v.get('prenom','?')} · {v.get('age','')} ans</span>
-                    <span class="danger-pill">⚠️ {v.get('danger','')}</span>
-                    <span class="char-pill">{t['label']}</span>
-                </div>
-                <p style="font-size:.82rem;color:#15803d;margin:0 0 6px;font-style:italic;">
-                    💬 {v.get('message_parent','')}
-                </p>
-                </div>""",unsafe_allow_html=True)
+        for i in range(0, len(EXAMPLES), 3):
+            cols = st.columns(3)
+            for j in range(3):
+                idx = i + j
+                if idx < len(EXAMPLES):
+                    ex = EXAMPLES[idx]
+                    with cols[j]:
+                        st.button(
+                            f"{ex['icon']} {ex['label']}", key=f"ex_{idx}",
+                            use_container_width=True, help=ex["text"],
+                            on_click=set_example, args=(ex["text"], ex["theme"])
+                        )
 
-                # Conseils sécurité
-                conseils=v.get("conseils",[])
-                if conseils:
-                    tips="".join(f'<div class="tip-chip">{c}</div>'for c in conseils)
-                    st.markdown(f'<div style="margin:8px 0 4px;"><span class="sec-label">'
-                        f'🛡️ Conseils de sécurité générés</span></div>'
-                        f'<div class="tip-row">{tips}</div>',unsafe_allow_html=True)
 
-                st.markdown('<div style="font-size:.88rem;font-weight:700;color:#1e293b;'
-                    'margin:1rem 0 .5rem;">👆 Est-ce correct ? Confirme pour générer la vidéo :</div>',
-                    unsafe_allow_html=True)
 
-                cb1,cb2=st.columns([1,1])
-                with cb1:
-                    if st.button("✅ Oui, générer le scénario!",type="primary",use_container_width=True):
-                        with st.spinner("🎵 Génération scénario et images…"):
-                            try:
-                                data=scenario_ai(st.session_state.betise,v,st.session_state.api_key)
-                                st.session_state.scenario=data
-                                char,song,narrations,img_prompts=parse_scenario(data)
-                                st.session_state.char=char
-                                st.session_state.song=song
-                                st.session_state.narrations=narrations
-                                st.session_state.img_prompts=img_prompts
-                                st.session_state.step=2
-                                st.rerun()
-                            except json.JSONDecodeError:
-                                st.error("L'IA n'a pas renvoyé un JSON valide. Réessaie.")
-                            except Exception as e:
-                                st.error(f"Erreur API Groq : {e}")
-                with cb2:
-                    if st.button("✏️ Non, modifier la phrase",use_container_width=True):
-                        st.session_state.val=None
-                        st.rerun()
 
+
+        # ══════════════════════════════════════════════════
+        # CHOIX DU PERSONNAGE
+        # ─────────────────────────────────────────
+        st.markdown(
+            "<div style='margin-top:20px;margin-bottom:8px;'>"
+            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
+            "text-transform:uppercase;letter-spacing:0.06em;'>🦸 Personnage de la vidéo</span><br>"
+            "<span style='font-size:0.8rem;color:#8492a6;'>"
+            "Cliquez pour choisir un héros spécifique, ou laissez l'IA choisir par défaut !"
+            "</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+        HEROES = [
+            {"icon": "🤖", "label": "Par défaut (L'IA choisit)"},
+            {"icon": "👧", "label": "Petite fille"},
+            {"icon": "👦", "label": "Petit garçon"},
+            {"icon": "🕸️", "label": "Spiderman"},
+            {"icon": "🦸‍♂️", "label": "Superman"},
+            {"icon": "🐭", "label": "Tom & Jerry"},
+            {"icon": "🐻", "label": "Masha"},
+            {"icon": "🎒", "label": "Dora"},
+            {"icon": "❄️", "label": "Elsa"},
+        ]
+
+        def append_hero(hero_name):
+            current = st.session_state.get(_input_key, "")
+            
+            if "Par défaut" in hero_name:
+                addon = "Laissez l'IA choisir le personnage."
             else:
-                # Non valide
-                st.markdown(f"""<div class="val-box val-err">
-                <div style="font-size:1rem;font-weight:800;color:#991b1b;margin-bottom:8px;">
-                    ⚠️ Ce contenu n'est pas adapté</div>
-                <p style="font-size:.88rem;color:#b91c1c;margin:0 0 10px;">
-                    {v.get("raison","")}</p>
-                </div>""",unsafe_allow_html=True)
+                addon = f"Le héros de l'histoire sera {hero_name}."
+                
+            if current:
+                if not current.endswith(" "):
+                    current += " "
+                st.session_state[_input_key] = current + addon
+            else:
+                st.session_state[_input_key] = addon
 
-                sugg=v.get("suggestions",[])
-                if sugg:
-                    st.markdown("#### 💡 Essaie plutôt :")
-                    for s in sugg:
-                        if st.button(f"→ {s}",key=f"sg{s[:15]}"):
-                            st.session_state.betise=s; st.session_state.val=None; st.rerun()
-
-                if st.button("✏️ Réécrire ma phrase",type="primary",use_container_width=True):
-                    st.session_state.val=None; st.rerun()
+        for i in range(0, len(HEROES), 3):
+            cols = st.columns(3)
+            for j in range(3):
+                idx = i + j
+                if idx < len(HEROES):
+                    h = HEROES[idx]
+                    with cols[j]:
+                        st.button(
+                            f"{h['icon']} {h['label']}", key=f"hero_{idx}",
+                            use_container_width=True, on_click=append_hero, args=(h["label"],)
+                        )
 
     # ══════════════════════════════════════
     #  ÉTAPE 2 — SCÉNARIO
@@ -998,37 +1580,66 @@ def main():
         if not char or not song:
             st.error("Données manquantes."); st.session_state.step=1; st.rerun()
 
-        # Carte personnage
-        st.markdown(f"""<div class="card-accent">
-        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-            <div style="width:60px;height:60px;border-radius:50%;
+        # En-tête professionnel (Cadre haut)
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+                    border-radius: 16px; padding: 24px; color: white; display: flex; 
+                    align-items: center; gap: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-bottom: 24px;">
+            <div style="width:80px;height:80px;border-radius:50%;
                  background:linear-gradient(135deg,{t['color']},#ec4899);
                  display:flex;align-items:center;justify-content:center;
-                 font-size:1.8rem;flex-shrink:0;">
+                 font-size:2.5rem;flex-shrink:0; border: 3px solid rgba(255,255,255,0.2);">
                  {'👧'if char.genre=='fille'else'👦'}</div>
-            <div style="flex:1;min-width:140px;">
-                <div style="font-size:1.4rem;font-weight:800;color:#0f172a;">{char.prenom}</div>
-                <div style="font-size:.85rem;color:#64748b;">{char.age} ans · {char.genre}</div>
-                <div style="margin-top:6px;">
-                    <span class="danger-pill">⚠️ {data.get('danger_court','')}</span>
-                    <span class="char-pill">{t['label']}</span>
+            <div style="flex:1;">
+                <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; color:#94a3b8; font-weight:700;">Protagoniste & Cadre</div>
+                <div style="font-size:1.8rem;font-weight:800;color:#f8fafc; margin-bottom: 4px;">{char.prenom} <span style="font-size:1.1rem; color:#cbd5e1; font-weight:500;">({char.age} ans)</span></div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                    <span style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); border-radius: 99px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: #fca5a5;">⚠️ Danger : {data.get('danger_court','')}</span>
+                    <span style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); border-radius: 99px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: #a5b4fc;">🎨 Ambiance : {data.get('ambiance_couleur','')}</span>
                 </div>
             </div>
-            <div style="flex:1;min-width:180px;background:#f8fafc;border-radius:10px;
-                 padding:10px;border:1px solid #e2e8f0;">
-                <span class="sec-label">🎨 Décor &amp; Ambiance</span>
-                <div style="font-size:.85rem;color:#374151;">{data.get('decor_principal','')}</div>
-                <div style="font-size:.8rem;color:{t['color']};font-weight:700;margin-top:3px;">
-                    🎨 {data.get('ambiance_couleur','')}</div>
+            <div style="flex:1; min-width: 200px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">🎵 Thème Musical</div>
+                <div style="font-size: 1rem; font-weight: 600; color: #e2e8f0; margin-top: 4px;">{song.titre}</div>
             </div>
         </div>
-        <div style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:10px;">
-            <span style="font-size:.85rem;font-weight:700;color:#4f46e5;">🎵 {song.titre}</span>
-        </div>
-        </div>""",unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-        # Chanson
-        with st.expander("🎵 Voir la chanson complète générée",expanded=False):
+        st.markdown("<h3 style='font-size: 1.2rem; font-weight: 800; color: #1e293b; margin-bottom: 16px;'>🎬 Démarche du scénario (Aperçu des scènes)</h3>", unsafe_allow_html=True)
+
+        # Storyboard visuel complet
+        scenes_titles = ["1. Introduction", "2. La vie normale", "3. Découverte", "4. Tentation", "5. Hésitation",
+                         "6. ⚠️ DANGER", "7. Suspense...", "8. 💥 L'ACTION", "9. Aïe aïe aïe!", "10. Peur",
+                         "11. Pourquoi?", "12. Explication", "13. Compréhension", "14. Promesse", "15. Conclusion"]
+        
+        narrations = st.session_state.narrations
+        
+        timeline_html = "<div style='display:flex; flex-direction:column; gap: 10px; margin-bottom: 24px;'>"
+        for idx in range(min(15, len(narrations))):
+            scene_tit = scenes_titles[idx] if idx < len(scenes_titles) else f"Scène {idx+1}"
+            narr_text = narrations[idx]
+            
+            # Couleurs dynamiques selon l'intensité narrative
+            if idx in [5, 7, 8]:
+                border_color = "#ef4444" # Rouge (Action/Danger)
+                bg_color = "#fef2f2"
+            elif idx in [10, 11, 12]:
+                border_color = "#22c55e" # Vert (Leçon/Compréhension)
+                bg_color = "#f0fdf4"
+            else:
+                border_color = "#6366f1" # Bleu (Normal)
+                bg_color = "#f8fafc"
+                
+            timeline_html += f"""<div style="border: 1px solid #e2e8f0; border-left: 5px solid {border_color}; background: {bg_color}; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 4px;">
+<div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">{scene_tit}</div>
+<div style="font-size: 0.95rem; font-weight: 500; color: #1e293b; font-style: italic;">💬 "{narr_text}"</div>
+</div>"""
+        timeline_html += "</div>"
+        
+        st.markdown(timeline_html, unsafe_allow_html=True)
+        
+        # Chanson dans l'expander (replié par défaut pour plus de propreté)
+        with st.expander("🎵 Voir les paroles complètes de la chanson", expanded=False):
             for lbl,txt in [
                 ("🎵 Introduction",song.intro),("📖 Acte I — Vie normale",song.acte1),
                 ("😮 Acte II — La tentation",song.acte2),("🚨 Refrain 1 — Avertissement",song.refrain1),
@@ -1037,19 +1648,6 @@ def main():
                 ("🤝 Acte VI — La promesse",song.acte6),("🫵 Message final",song.outro)]:
                 st.markdown(f'<div class="song-blk"><div class="song-lbl">{lbl}</div>'
                     f'<div class="song-txt">{txt}</div></div>',unsafe_allow_html=True)
-
-        # Aperçu scènes
-        sc_prev=[("🏠","Intro"),("🌳","Acte I"),("😮","Acte II"),("🚨","Refrain"),
-                 ("⚠️","Acte III"),("💥","Acte IV"),("💡","Refrain"),("😢","Acte V"),
-                 ("🤝","Acte VI"),("🎉","Fin")]
-        cols5=st.columns(5)
-        for i,(ic,nm) in enumerate(sc_prev):
-            with cols5[i%5]:
-                st.markdown(f'<div style="background:#f8fafc;border:1px solid #e2e8f0;'
-                    f'border-radius:10px;padding:10px 4px;text-align:center;margin-bottom:6px;">'
-                    f'<div style="font-size:1.3rem;">{ic}</div>'
-                    f'<div style="font-size:.64rem;font-weight:700;color:#64748b;margin-top:3px;">{nm}</div>'
-                    f'</div>',unsafe_allow_html=True)
 
         st.markdown("<br>",unsafe_allow_html=True)
         cb,cg=st.columns([1,2])
@@ -1081,45 +1679,42 @@ def main():
         </div>""",unsafe_allow_html=True)
 
         with st.status("⚙️ Génération en cours...",expanded=True) as status:
-            scenes=build_scenes(char,song,st.session_state.theme,st.session_state.narrations,st.session_state.img_prompts)
-            
-            st.write("🖼️ Génération des décors avec l'IA (Images)...")
-            import urllib.request, urllib.parse
-            import concurrent.futures
-            pb_bg = st.progress(0, text="Téléchargement des images d'arrière-plan en parallèle…")
-            
-            def fetch_image(i, scene):
-                import time
-                for attempt in range(3):
-                    try:
-                        prompt = f"{scene.image_prompt}, 2d flat vector illustration, colorful children book style, cute, no text, no people"
-                        url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={Cfg.SIZE}&height={Cfg.SIZE}&nologo=true&seed={42+i}"
-                        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}, method='GET')
-                        with urllib.request.urlopen(req, timeout=15) as resp:
-                            scene.bg_img = Image.open(resp).convert("RGBA").resize((Cfg.SIZE, Cfg.SIZE))
-                        return i # Succès
-                    except Exception as e:
-                        time.sleep(1.5) # Attendre avant de réessayer
-                scene.bg_img = None # Repli si tout échoue
-                return i
-
-            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-                futures = [executor.submit(fetch_image, i, scene) for i, scene in enumerate(scenes)]
-                completed = 0
-                for future in concurrent.futures.as_completed(futures):
-                    completed += 1
-                    pb_bg.progress(completed/len(scenes), text=f"Décor {completed}/{len(scenes)}")
-
-            st.write("🎨 Rendu vidéo frame par frame...")
-            pb=st.progress(0,text="Démarrage…")
-            frames=render_all(scenes,char.genre,song,td,pb)
-
-            st.write("🎙️ Génération de la voix…")
-            aph=st.empty()
+            aph = st.empty()
             with tempfile.TemporaryDirectory() as tmpdir:
-                audio=gen_audio(char,song,tmpdir,aph); aph.empty()
+                audio_path, durees_frames = gen_audio(char, st.session_state.narrations, tmpdir, aph)
+                aph.empty()
+                
+                # Check list is complete for safety
+                if not durees_frames or len(durees_frames) < 15:
+                    durees_frames = [int(Cfg.FPS*5)] * 15
+                    
+                scenes=build_scenes(char,song,st.session_state.theme,st.session_state.narrations,st.session_state.img_prompts, st.session_state.emotions_personnage, st.session_state.lieux_scenes, durees_frames)
+                
+                st.write("🖼️ Génération des décors avec l'IA...")
+                import urllib.request, urllib.parse, time
+                pb_bg = st.progress(0, text="Téléchargement des images IA…")
+                for i, scene in enumerate(scenes):
+                    image_recue = False
+                    for tentatives in range(10):
+                        try:
+                            prompt = f"{scene.image_prompt}, 2d flat vector illustration, colorful children book style, cute, no text"
+                            url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={Cfg.SIZE}&height={Cfg.SIZE}&nologo=true&seed={42+i}"
+                            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                            with urllib.request.urlopen(req, timeout=10) as resp:
+                                scene.bg_img = Image.open(resp).convert("RGBA").resize((Cfg.SIZE, Cfg.SIZE))
+                                image_recue = True
+                                break
+                        except Exception as e:
+                            time.sleep(1.5)
+                    if not image_recue: scene.bg_img = None
+                    pb_bg.progress((i+1)/len(scenes), text=f"Décor IA {i+1}/{len(scenes)}")
+
+                st.write("🎨 Rendu vidéo frame par frame...")
+                pb=st.progress(0,text="Démarrage…")
+                frames=render_all(scenes,char.genre,song,td,pb)
+
                 st.write("⚙️ Encodage MP4…")
-                fp=encode_video(frames,audio,tmpdir,char.prenom)
+                fp=encode_video(frames,audio_path,tmpdir,char.prenom)
                 if not os.path.exists(fp):
                     st.error("❌ Erreur encodage. Vérifie que ffmpeg est installé."); st.stop()
                 with open(fp,"rb")as fv: vb=fv.read()
@@ -1138,8 +1733,8 @@ def main():
         c1,c2=st.columns(2)
         with c1:
             if st.button("🔄 Créer une nouvelle vidéo",use_container_width=True,type="primary"):
-                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme"]:
-                    st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in["narrations","img_prompts"] else "" if k=="betise" else None
+                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no"]:
+                    st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in["narrations","img_prompts"] else "" if k=="betise" else False if k in["confirmed_yes","confirmed_no"] else None
                 st.rerun()
         with c2:
             st.info("💡 Partage cette vidéo avec ton enfant pour apprendre en s'amusant!")
@@ -1147,12 +1742,11 @@ def main():
     # ── Footer ──
     st.markdown("---")
     st.markdown("<p style='text-align:center;font-size:.76rem;color:#94a3b8;'>"
-        "Studio Animé Éducatif v3 · Groq AI (100% gratuit) · "
+        "Studio Animé Éducatif v3 · Groq AI · "
         "Pour les enfants de 3 à 8 ans · Bienveillant &amp; Éducatif</p>",
         unsafe_allow_html=True)
 
 
 if __name__=="__main__":
     main()
-
-
+    
