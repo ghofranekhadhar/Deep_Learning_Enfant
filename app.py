@@ -92,11 +92,11 @@ THEMES = {
     "road":{"label":"🚦 Route","emoji":"🚦","color":"#64748b",
         "sky_n":((140,180,230),(190,215,245)),"sky_d":((160,80,40),(120,60,30)),"sky_g":((255,180,60),(255,210,110)),
         "gnd":(80,80,80),"gnds":(55,55,55),"fx":(255,255,0),"wall":(200,200,210),
-        "desc":"Rue de ville, passage piéton, feux de signalisation"},
+        "desc":"Rue de ville, passage piéton, véritable feu tricolore lumineux de circulation (traffic lights, NO FIRE FLAMES)"},
     "fire":{"label":"🔥 Feu / Gaz","emoji":"🔥","color":"#ef4444",
         "sky_n":((255,180,100),(255,210,150)),"sky_d":((200,50,0),(140,30,0)),"sky_g":((255,160,40),(255,200,90)),
         "gnd":(70,160,70),"gnds":(50,120,50),"fx":(255,80,0),"wall":(255,220,195),
-        "desc":"Cuisine avec gaz, flammes rouges dramatiques"},
+        "desc":"Cuisine avec gaz, vraies flammes de feu ardentes (real fire flames)"},
     "behaviour":{"label":"🤝 Comportement","emoji":"🤝","color":"#f59e0b",
         "sky_n":((255,230,160),(255,245,200)),"sky_d":((200,100,30),(140,70,20)),"sky_g":((255,200,80),(255,230,120)),
         "gnd":(80,170,80),"gnds":(55,130,55),"fx":(255,190,0),"wall":(255,245,220),
@@ -143,8 +143,8 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
 {{"prenom":"{prenom}","age":{age},"genre":"{genre}","hero":"{hero}","danger_court":"3 mots max",
 "decor_principal":"8 mots max","ambiance_couleur":"couleur dominante",
 "scenes_narration":[
-  "Narration Scène 1 : Joyeux bonjour à l'enfant (utilise son prénom [{prenom}]) et annonce fascinante de l'histoire sur son ami [{hero}] (choisis un autre prénom aléatoire si c'est 'Par défaut' -- NE PAS utiliser le vrai prénom de l'enfant original). IMPÉRATIF : Utilise ce héros [{hero}] tout au long de l'histoire !",
-  "Narration Scène 2 : Phrase créative décrivant ce que [{hero}] (le personnage principal) est en train de faire.",
+  "Narration Scène 1 : Salutation directe et joyeuse au spectateur [{prenom}] et annonce fascinante de l'histoire qu'il va regarder sur son ami [{hero}] (invente un prénom aléatoire si 'Par défaut' -- JAMAIS le vrai prénom de l'enfant). Ne salue PAS le héros !",
+  "Narration Scène 2 : Phrase créative décrivant ce que le héros [{hero}] est en train de faire.",
   "Narration Scène 3 : Autre phrase décrivant l'activité de [{hero}]. (Ne dis jamais 'l'enfant', utilise toujours son nom !) ",
   "Narration Scène 4 : [{hero}] découvre soudainement un nouvel objet (le danger).",
   "Narration Scène 5 : [{hero}] observe l'objet avec une grande curiosité.",
@@ -157,10 +157,10 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
   "Narration Scène 12 : Le conteur explique à [{hero}] POURQUOI c'est interdit (belle leçon créative).",
   "Narration Scène 13 : [{hero}] écoute et comprend avec tristesse son erreur.",
   "Narration Scène 14 : [{hero}] fait la promesse solennelle de ne jamais recommencer.",
-  "Narration Scène 15 : Adresse-toi directement à l'enfant spectateur [{prenom}] pour récapituler la bêtise de [{hero}], et conclus positivement."
+  "Narration Scène 15 : Adresse-toi directement au spectateur [{prenom}] pour récapituler la bêtise de [{hero}], et conclus positivement. (ATTENTION: NE LUI RE-DIS PAS BONJOUR ICI, juste un message de conclusion !)"
 ],
 "image_prompts":[
-  "Describe scene 1 background in English. IMPORTANT: Include the main hero [{hero}]. Include friends/companions ONLY IF they are actively relevant to this scene's story.",
+  "Describe scene 1 background in English. IMPORTANT: Show the main hero [{hero}] waving happily at the camera.",
   "Describe scene 2 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 3 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 4 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
@@ -174,41 +174,41 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
   "Describe scene 12 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 13 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 14 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
-  "Describe scene 15 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story."
+  "Describe scene 15 background in English. IMPORTANT: Show the main hero [{hero}] waving goodbye to the camera."
 ],
 "lieux_scenes":[
-  "phrase courte (1-3 mots max) avec 1 emoji pour indiquer le lieu exact de la scène 1 (ex: 🏠 Dans la cuisine)",
-  "phrase courte avec emoji lieu de la scène 2",
-  "phrase courte avec emoji lieu de la scène 3",
-  "phrase courte avec emoji lieu de la scène 4",
-  "phrase courte avec emoji lieu de la scène 5",
-  "phrase courte avec emoji lieu de la scène 6",
-  "phrase courte avec emoji lieu de la scène 7",
-  "phrase courte avec emoji lieu de la scène 8",
-  "phrase courte avec emoji lieu de la scène 9",
-  "phrase courte avec emoji lieu de la scène 10",
-  "phrase courte avec emoji lieu de la scène 11",
-  "phrase courte avec emoji lieu de la scène 12",
-  "phrase courte avec emoji lieu de la scène 13",
-  "phrase courte avec emoji lieu de la scène 14",
-  "phrase courte avec emoji lieu de la scène 15"
+  "phrase courte (1-3 mots max) SANS AUCUN EMOJI pour indiquer le lieu (ex: Dans la cuisine)",
+  "phrase courte lieu scène 2 sans emoji",
+  "phrase courte lieu scène 3 sans emoji",
+  "phrase courte lieu scène 4 sans emoji",
+  "phrase courte lieu scène 5 sans emoji",
+  "phrase courte lieu scène 6 sans emoji",
+  "phrase courte lieu scène 7 sans emoji",
+  "phrase courte lieu scène 8 sans emoji",
+  "phrase courte lieu scène 9 sans emoji",
+  "phrase courte lieu scène 10 sans emoji",
+  "phrase courte lieu scène 11 sans emoji",
+  "phrase courte lieu scène 12 sans emoji",
+  "phrase courte lieu scène 13 sans emoji",
+  "phrase courte lieu scène 14 sans emoji",
+  "phrase courte lieu scène 15 sans emoji"
 ],
 "emotions_personnage":[
-  "phrase courte indiquant l'humeur absolue du personnage qui a fait la bêtise, en utilisant SON NOM EXACT à lui (ex: 'Humeur de [Nom du Héros choisi par toi] : joyeux')",
-  "phrase indiquant l'humeur du personnage principal scène 2",
-  "phrase indiquant l'humeur du personnage principal scène 3",
-  "phrase indiquant l'humeur du personnage principal scène 4",
-  "phrase indiquant l'humeur du personnage principal scène 5",
-  "phrase indiquant l'humeur du personnage principal scène 6",
-  "phrase indiquant l'humeur du personnage principal scène 7",
-  "phrase indiquant l'humeur du personnage principal scène 8",
-  "phrase indiquant l'humeur du personnage principal scène 9",
-  "phrase indiquant l'humeur du personnage principal scène 10",
-  "phrase indiquant l'humeur du personnage principal scène 11",
-  "phrase indiquant l'humeur du personnage principal scène 12",
-  "phrase indiquant l'humeur du personnage principal scène 13",
-  "phrase indiquant l'humeur du personnage principal scène 14",
-  "phrase indiquant l'humeur du personnage principal scène 15"
+  "état émotionnel très court, ex: 'Dora heureuse' ou 'Spiderman triste'. NE JAMAIS ÉCRIRE le mot 'Humeur', juste l'état.",
+  "état émotionnel scène 2, direct et court",
+  "état émotionnel scène 3",
+  "état émotionnel scène 4",
+  "état émotionnel scène 5",
+  "état émotionnel scène 6",
+  "état émotionnel scène 7",
+  "état émotionnel scène 8",
+  "état émotionnel scène 9",
+  "état émotionnel scène 10",
+  "état émotionnel scène 11",
+  "état émotionnel scène 12",
+  "état émotionnel scène 13",
+  "état émotionnel scène 14",
+  "état émotionnel scène 15"
 ],
 "song":{{"titre":"La Chanson de {prenom} et [danger] (style {hero})",
 "intro":"2-3 phrases d'accroche rimées","acte1":"vie normale 3-4 phrases rimées",
@@ -722,7 +722,7 @@ def draw_ui(img, scene, f_in, song, genre):
 
     # ✨ L'émotion IA du personnage principal — italique violet clair
     # L'IA génère maintenant toute la phrase (ex: "Humeur de Spiderman : joyeux")
-    petit_texte = f"💫 {scene.emotion_text}"
+    petit_texte = f"* {scene.emotion_text}"
     draw.text((12, y0), petit_texte, fill=(180, 155, 255), font=F["small"])
     y0 += 20
 
@@ -738,8 +738,8 @@ def draw_ui(img, scene, f_in, song, genre):
         if end_bracket != -1:
             narr = narr[end_bracket + 1:].strip()
     
-    # Afficher plus de texte en largeur pour le condenser sur 3 lignes max sans couper le contenu
-    lines = wrap_text(narr, 56)[:3]
+    # Garder la largeur à 42 pour que le texte n'écrase pas le personnage animé Python superposé à droite
+    lines = wrap_text(narr, 42)[:3]
     for i, line in enumerate(lines):
         # Première ligne un peu plus grande
         font = F["med"] if i == 0 else F["small"]
@@ -1697,7 +1697,7 @@ def main():
                     image_recue = False
                     for tentatives in range(10):
                         try:
-                            prompt = f"{scene.image_prompt}, 2d flat vector illustration, colorful children book style, cute, no text"
+                            prompt = f"{scene.image_prompt}, completely exact same character design, highly consistent character, 2d flat vector illustration, colorful children book style, cute, no text"
                             url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}?width={Cfg.SIZE}&height={Cfg.SIZE}&nologo=true&seed={42+i}"
                             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
                             with urllib.request.urlopen(req, timeout=10) as resp:
