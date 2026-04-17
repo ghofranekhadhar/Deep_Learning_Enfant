@@ -1649,49 +1649,37 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<h3 style='font-size: 1.2rem; font-weight: 800; color: #1e293b; margin-bottom: 16px;'>🎬 Démarche du scénario (Aperçu des scènes)</h3>", unsafe_allow_html=True)
-
         # Storyboard visuel complet
-        scenes_titles = ["1. Introduction", "2. La vie normale", "3. Découverte", "4. Tentation", "5. Hésitation",
-                         "6. ⚠️ DANGER", "7. Suspense...", "8. 💥 L'ACTION", "9. Aïe aïe aïe!", "10. Peur",
-                         "11. Pourquoi?", "12. Explication", "13. Compréhension", "14. Promesse", "15. Conclusion"]
-        
-        narrations = st.session_state.narrations
-        
-        timeline_html = "<div style='display:flex; flex-direction:column; gap: 10px; margin-bottom: 24px;'>"
-        for idx in range(min(15, len(narrations))):
-            scene_tit = scenes_titles[idx] if idx < len(scenes_titles) else f"Scène {idx+1}"
-            narr_text = narrations[idx]
+        with st.expander("🎬 Démarche du scénario (Aperçu des scènes)", expanded=True):
+            scenes_titles = ["1. Introduction", "2. La vie normale", "3. Découverte", "4. Tentation", "5. Hésitation",
+                             "6. ⚠️ DANGER", "7. Suspense...", "8. 💥 L'ACTION", "9. Aïe aïe aïe!", "10. Peur",
+                             "11. Pourquoi?", "12. Explication", "13. Compréhension", "14. Promesse", "15. Conclusion"]
             
-            # Couleurs dynamiques selon l'intensité narrative
-            if idx in [5, 7, 8]:
-                border_color = "#ef4444" # Rouge (Action/Danger)
-                bg_color = "#fef2f2"
-            elif idx in [10, 11, 12]:
-                border_color = "#22c55e" # Vert (Leçon/Compréhension)
-                bg_color = "#f0fdf4"
-            else:
-                border_color = "#6366f1" # Bleu (Normal)
-                bg_color = "#f8fafc"
+            narrations = st.session_state.narrations
+            
+            timeline_html = "<div style='display:flex; flex-direction:column; gap: 10px; margin-bottom: 10px;'>"
+            for idx in range(min(15, len(narrations))):
+                scene_tit = scenes_titles[idx] if idx < len(scenes_titles) else f"Scène {idx+1}"
+                narr_text = narrations[idx]
                 
-            timeline_html += f"""<div style="border: 1px solid #e2e8f0; border-left: 5px solid {border_color}; background: {bg_color}; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 4px;">
+                # Couleurs dynamiques selon l'intensité narrative
+                if idx in [5, 7, 8]:
+                    border_color = "#ef4444" # Rouge (Action/Danger)
+                    bg_color = "#fef2f2"
+                elif idx in [10, 11, 12]:
+                    border_color = "#22c55e" # Vert (Leçon/Compréhension)
+                    bg_color = "#f0fdf4"
+                else:
+                    border_color = "#6366f1" # Bleu (Normal)
+                    bg_color = "#f8fafc"
+                    
+                timeline_html += f"""<div style="border: 1px solid #e2e8f0; border-left: 5px solid {border_color}; background: {bg_color}; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 4px;">
 <div style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">{scene_tit}</div>
 <div style="font-size: 0.95rem; font-weight: 500; color: #1e293b; font-style: italic;">💬 "{narr_text}"</div>
 </div>"""
-        timeline_html += "</div>"
-        
-        st.markdown(timeline_html, unsafe_allow_html=True)
-        
-        # Histoire complète dans l'expander (replié par défaut pour plus de propreté)
-        with st.expander("📖 Voir le texte complet de l'histoire", expanded=False):
-            for lbl,txt in [
-                ("📖 Introduction",song.intro),("📖 Acte I — Vie normale",song.acte1),
-                ("😮 Acte II — La tentation",song.acte2),("🚨 Attention — Avertissement",song.refrain1),
-                ("⚠️ Acte III — La bêtise",song.acte3),("💥 Acte IV — Conséquence",song.acte4),
-                ("💡 La morale — Explication",song.refrain2),("😢 Acte V — Il comprend",song.acte5),
-                ("🤝 Acte VI — La promesse",song.acte6),("🫵 Message final",song.outro)]:
-                st.markdown(f'<div class="song-blk"><div class="song-lbl">{lbl}</div>'
-                    f'<div class="song-txt">{txt}</div></div>',unsafe_allow_html=True)
+            timeline_html += "</div>"
+            
+            st.markdown(timeline_html, unsafe_allow_html=True)
 
         st.markdown("<br>",unsafe_allow_html=True)
         cb,cg=st.columns([1,2])
