@@ -1136,29 +1136,24 @@ hr{border-color:#f1f5f9!important;}
 }
 
 /* Section cards — tinted pastel backgrounds (step 1 containers) */
-[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(1){
-    background:linear-gradient(145deg,rgba(124,58,237,0.22),rgba(168,85,247,0.12))!important;
+/* Must target BOTH wrapper AND the inner stVerticalBlock that has white bg by default */
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(1),
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(1) > div[data-testid="stVerticalBlock"]{
+    background:linear-gradient(145deg,rgba(124,58,237,0.20),rgba(168,85,247,0.12))!important;
     border-color:#a78bfa!important;
     border-width:1.5px!important;
-    backdrop-filter:blur(10px)!important;
-    -webkit-backdrop-filter:blur(10px)!important;
-    box-shadow:0 4px 20px rgba(124,58,237,0.12)!important;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(2){
-    background:linear-gradient(145deg,rgba(37,99,235,0.22),rgba(59,130,246,0.12))!important;
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(2),
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(2) > div[data-testid="stVerticalBlock"]{
+    background:linear-gradient(145deg,rgba(37,99,235,0.20),rgba(59,130,246,0.12))!important;
     border-color:#60a5fa!important;
     border-width:1.5px!important;
-    backdrop-filter:blur(10px)!important;
-    -webkit-backdrop-filter:blur(10px)!important;
-    box-shadow:0 4px 20px rgba(37,99,235,0.12)!important;
 }
-[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(3){
-    background:linear-gradient(145deg,rgba(219,39,119,0.22),rgba(236,72,153,0.12))!important;
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(3),
+div[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(3) > div[data-testid="stVerticalBlock"]{
+    background:linear-gradient(145deg,rgba(219,39,119,0.20),rgba(236,72,153,0.12))!important;
     border-color:#f472b6!important;
     border-width:1.5px!important;
-    backdrop-filter:blur(10px)!important;
-    -webkit-backdrop-filter:blur(10px)!important;
-    box-shadow:0 4px 20px rgba(219,39,119,0.12)!important;
 }
 #MainMenu,footer{visibility:hidden;}
 </style>
@@ -1505,87 +1500,27 @@ def main():
 
         if _ok:
             _v = _lv
-            _age_str = f" · {_v.get('age')} ans" if _v.get("age") else ""
-            # ── Carte de validation ──
-            st.markdown(
-                "<div style='background:linear-gradient(135deg,#f0fdf4,#dcfce7);"
-                "border:1.5px solid #4ade80;border-radius:14px;"
-                "padding:14px 18px;margin-top:14px;'>"
-                "<div style='font-size:0.9rem;font-weight:700;color:#15803d;margin-bottom:6px;'>"
-                f"📌 Scénario prêt : {_v.get('prenom','Votre enfant')}{_age_str} • {_v.get('danger','')}</div>"
-                f"<div style='font-size:0.88rem;color:#166534;opacity:0.85;'>"
-                f"{_v.get('comprehension','')}</div>"
-                "</div>",
-                unsafe_allow_html=True
-            )
+            _age_str = f" �        # ══ SUGGESTIONS RAPIDES ══
+        # CSS injecté pour cibler le prochain container Streamlit
+        st.markdown("""<style>
+        [data-testid="stVerticalBlockBorderWrapper"]{
+            border-radius:14px!important;
+            overflow:hidden!important;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) > [data-testid="stVerticalBlock"]{
+            background:linear-gradient(160deg,rgba(237,233,254,0.95),rgba(245,243,255,0.90))!important;
+            border-left:4px solid #7c3aed!important;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) > [data-testid="stVerticalBlock"]{
+            background:linear-gradient(160deg,rgba(219,234,254,0.95),rgba(239,246,255,0.90))!important;
+            border-left:4px solid #2563eb!important;
+        }
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(3) > [data-testid="stVerticalBlock"]{
+            background:linear-gradient(160deg,rgba(252,231,243,0.95),rgba(255,241,245,0.90))!important;
+            border-left:4px solid #db2777!important;
+        }
+        </style>""", unsafe_allow_html=True)
 
-            # ── Boutons Actions ──
-            st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
-            _bg1, _bg2 = st.columns([3, 1])
-            with _bg1:
-                if st.button(
-                    ":material/movie: GÉNÉRER LE DESSIN ANIMÉ ÉDUCATIF !",
-                    type="primary", use_container_width=True, key="btn_gen_video"
-                ):
-                    with st.spinner("Création du scénario animé…"):
-                        try:
-                            _data = scenario_ai(
-                                st.session_state.betise, _v, st.session_state.api_key)
-                            st.session_state.scenario = _data
-                            _ch, _sg, _nar, _ipr, _ep, _ls = parse_scenario(_data)
-                            st.session_state.char  = _ch
-                            st.session_state.song  = _sg
-                            st.session_state.narrations  = _nar
-                            st.session_state.img_prompts = _ipr
-                            st.session_state.emotions_personnage = _ep
-                            st.session_state.lieux_scenes = _ls
-                            st.session_state.step = 2
-                            st.rerun()
-                        except json.JSONDecodeError:
-                            st.error("Format JSON invalide.")
-                        except Exception as _e:
-                            st.error(f"Erreur : {_e}")
-            with _bg2:
-                if st.button(":material/refresh: Réinterpréter", use_container_width=True, key="btn_reinterp"):
-                    with st.spinner("Nouvelle réflexion…"):
-                        import time; time.sleep(1)
-                        try:
-                            _r3 = chat_ai(st.session_state.betise, st.session_state.api_key, st.session_state.val)
-                            reply3 = _r3.get("response", "")
-                            st.session_state.chat_history.append({"role": "ai", "content": reply3, "ts": _ts()})
-                            st.session_state.val = _r3 if _r3.get("type")=="scenario" else None
-                            if _r3.get("theme") in THEMES:
-                                st.session_state.theme = _r3["theme"]
-                            st.rerun()
-                        except Exception as _e:
-                            st.error(f"Erreur : {_e}")
-        else:
-            # Pas encore de scénario détecté : invite + bouton grisé
-            st.markdown(
-                "<div style='background:#f8fafc;border:1.5px solid #e2e8f0;"
-                "border-radius:14px;padding:14px 18px;margin-top:14px;"
-                "text-align:center;color:#94a3b8;font-size:0.84rem;'>"
-                "💬 Décrivez le comportement de votre enfant pour débloquer la génération vidéo"
-                "</div>",
-                unsafe_allow_html=True
-            )
-            st.button(":material/movie: Générer le dessin animé éducatif",
-                      type="secondary", use_container_width=True,
-                      key="btn_gen_video", disabled=True)
-
-        # ══ SUGGESTIONS RAPIDES ══
-        st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
-        st.markdown(
-            "<style>"
-            "#sect-examples + div [data-testid='stVerticalBlockBorderWrapper'],"
-            "#sect-examples ~ div [data-testid='stVerticalBlockBorderWrapper']{"
-            "background:linear-gradient(145deg,rgba(124,58,237,0.18),rgba(168,85,247,0.10))!important;"
-            "border-color:#a78bfa!important;border-width:1.5px!important;"
-            "box-shadow:0 4px 20px rgba(124,58,237,0.14)!important;"
-            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
-            "</style><span id='sect-examples'></span>",
-            unsafe_allow_html=True
-        )
         with st.container(border=True):
             st.markdown(
                 "<div style='background:linear-gradient(135deg,#7c3aed,#a855f7);"
@@ -1612,29 +1547,72 @@ def main():
                                 on_click=set_example, args=(ex["text"], ex["theme"])
                             )
 
-
-
-
-
         # ══ CHOIX DU PERSONNAGE ══
         st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
-        st.markdown(
-            "<style>"
-            "#sect-heroes + div [data-testid='stVerticalBlockBorderWrapper'],"
-            "#sect-heroes ~ div [data-testid='stVerticalBlockBorderWrapper']{"
-            "background:linear-gradient(145deg,rgba(37,99,235,0.18),rgba(59,130,246,0.10))!important;"
-            "border-color:#60a5fa!important;border-width:1.5px!important;"
-            "box-shadow:0 4px 20px rgba(37,99,235,0.14)!important;"
-            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
-            "</style><span id='sect-heroes'></span>",
-            unsafe_allow_html=True
-        )
         with st.container(border=True):
             st.markdown(
                 "<div style='background:linear-gradient(135deg,#2563eb,#3b82f6);"
                 "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
                 "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>sports_martial_arts</span>"
                 "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Personnage de la vidéo</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— l'IA ou votre choix</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            HEROES = [
+                {"icon": ":material/smart_toy:", "label": "Par défaut (L'IA choisit)"},
+                {"icon": ":material/face_3:", "label": "Petite fille"},
+                {"icon": ":material/face_6:", "label": "Petit garçon"},
+                {"icon": ":material/bug_report:", "label": "Spiderman"},
+                {"icon": ":material/flight:", "label": "Superman"},
+                {"icon": ":material/pest_control_rodent:", "label": "Tom & Jerry"},
+                {"icon": ":material/child_care:", "label": "Masha"},
+                {"icon": ":material/backpack:", "label": "Dora"},
+                {"icon": ":material/ac_unit:", "label": "Elsa"},
+            ]
+            def append_hero(hero_name):
+                current = st.session_state.get(_input_key, "")
+                if "Par défaut" in hero_name:
+                    addon = "Laissez l'IA choisir le personnage."
+                else:
+                    addon = f"Le héros de l'histoire sera {hero_name}."
+                if current:
+                    if not current.endswith(" "): current += " "
+                    st.session_state[_input_key] = current + addon
+                else:
+                    st.session_state[_input_key] = addon
+            for i in range(0, len(HEROES), 3):
+                cols = st.columns(3)
+                for j in range(3):
+                    idx = i + j
+                    if idx < len(HEROES):
+                        h = HEROES[idx]
+                        with cols[j]:
+                            st.button(
+                                f"{h['icon']} {h['label']}", key=f"hero_{idx}",
+                                use_container_width=True, on_click=append_hero, args=(h["label"],)
+                            )
+
+        # ══ CHOIX DU NARRATEUR ══
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#db2777,#ec4899);"
+                "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
+                "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>mic</span>"
+                "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Voix du Narrateur</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— qui raconte l'histoire</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            VOICES = ["Par défaut (selon l'enfant)", "Femme (Douce)", "Homme (Chaleureux)", "Petite Fille", "Petit Garçon"]
+            if "narrator" not in st.session_state:
+                st.session_state.narrator = VOICES[0]
+            st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES,
+                index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0,
+                label_visibility="collapsed")
+
+</span>"
                 "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— l'IA ou votre choix</span>"
                 "</div>",
                 unsafe_allow_html=True
