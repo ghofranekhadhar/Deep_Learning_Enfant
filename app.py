@@ -896,11 +896,11 @@ CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap');
 
 html,body,.stApp,[data-testid="stAppViewContainer"]{
-    background:#fafcff!important;
+    background:#eef2ff!important; /* Un fond bleuté clair (indigo) au lieu du blanc pur */
     font-family:'Inter',system-ui,sans-serif;
 }
 [data-testid="stHeader"]{background:transparent!important;}
-[data-testid="stSidebar"]{background:#ffffff!important;border-right:1px solid #f1f5f9;padding-top:2rem;}
+[data-testid="stSidebar"]{background:#ffffff!important;border-right:1px solid #e0e7ff;padding-top:2rem;}
 .block-container{background:transparent!important;padding-top:2rem!important;max-width:840px!important;}
 
 /* Typography */
@@ -914,29 +914,29 @@ p,div,label{font-family:'Inter',sans-serif;}
 }
 .block-container p, .block-container label,
 .block-container span:not(.ds-time),
-.stMarkdown p { color:#475569; }
+.stMarkdown p { color:#334155; }
 
-/* Hero — Clean, modern, soft presentation */
+/* Hero — Retour de la couleur vibrante pour ancrer le design ! */
 .hero{
-    background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);
-    border: 1px solid #f1f5f9;
+    background:linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+    border: none;
     border-radius:24px;
     padding:2.5rem 2rem;
     text-align:center;
     margin-bottom:2.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
 }
 .hero h1{
-    color:#1e293b!important;
+    color:#ffffff!important;
     font-size:2.4rem;
     font-weight:800;
     margin:0 0 10px!important;
-    background:-webkit-linear-gradient(45deg, #4f46e5, #db2777);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
 }
 .hero p{
-    color:#64748b!important;
+    color:rgba(255,255,255,0.9)!important;
     font-size:1.05rem;
     font-weight: 500;
     margin:0!important;
