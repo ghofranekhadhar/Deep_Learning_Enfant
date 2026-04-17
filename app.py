@@ -1156,7 +1156,7 @@ def stepper(cur:int)->str:
         if i<3:
             ld="done"if i<cur else ""
             parts.append(f'<div class="step-line {ld}"></div>')
-    return f'<div class="steps-row">{"".join(parts)}</div>'
+    return f'<div class="steps-row">{".".join(parts)}</div>'
 
 
 # ─────────────────────────────────────────
@@ -1170,49 +1170,55 @@ def main():
     # ── SESSION ──
     defaults={"step":1,"api_key":"","betise":"","val":None,
               "scenario":None,"char":None,"song":None,"narrations":[],"img_prompts":[],
-              "theme":"general","show_key":False,"analyzing":False,
-              "confirmed_yes":False,"confirmed_no":False,
+              "theme":"general","analyzing":False,"show_key":False,
               "confirmed_yes":False,"confirmed_no":False,
               "chat_history":[],"editing_index":None,"editing_content":""}
     for k,v in defaults.items():
         if k not in st.session_state: st.session_state[k]=v
 
     # ══════════════════════════════════════
-    #  SIDEBAR — CLÉ API GROQ
+    #  SIDEBAR
     # ══════════════════════════════════════
     with st.sidebar:
-        st.markdown('<div style="background:linear-gradient(135deg,#f5f3ff,#ede9fe); border:1px solid #c4b5fd; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 4px 18px rgba(124,58,237,0.1);">'
-                    '<div class="sb-title" style="margin-top:0; font-size:1.05rem;">:material/key: Clé API Groq</div>',
-                    unsafe_allow_html=True)
-        kt="text"if st.session_state.show_key else"password"
-        key=st.text_input("Clé",value=st.session_state.api_key,type=kt,
-            placeholder="gsk_...",label_visibility="collapsed")
-        st.session_state.api_key=key
-        c1,c2=st.columns([3,1])
-        with c2:
-            if st.button(":material/visibility:"if not st.session_state.show_key else":material/visibility_off:",key="sbv",help="Afficher/Masquer"):
-                st.session_state.show_key=not st.session_state.show_key; st.rerun()
-        valid_key=bool(key and key.strip().startswith("gsk_"))
+        # — Clé API —
+        st.markdown(
+            "<div style='background:linear-gradient(135deg,#f5f3ff,#ede9fe);"
+            "border:1px solid #c4b5fd;border-radius:12px;padding:10px 14px;"
+            "margin-bottom:12px;display:flex;align-items:center;gap:8px;'>"
+            "<span class='material-symbols-rounded' style='color:#7c3aed;font-size:1.2rem;'>key</span>"
+            "<span style='font-size:0.95rem;font-weight:700;color:#1e293b;'>Clé API Groq</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        key = st.text_input("Clé", value=st.session_state.api_key, type="password",
+            placeholder="gsk_...", label_visibility="collapsed")
+        st.session_state.api_key = key
+        valid_key = bool(key and key.strip().startswith("gsk_"))
         if valid_key: st.success("Clé valide", icon=":material/check_circle:")
         else: st.warning("Clé manquante", icon=":material/warning:")
-        st.markdown('</div>', unsafe_allow_html=True)
 
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='background:linear-gradient(135deg,#ecfdf5,#d1fae5);"
+            "border:1px solid #6ee7b7;border-radius:12px;padding:10px 14px;"
+            "margin-bottom:12px;display:flex;align-items:center;gap:8px;'>"
+            "<span class='material-symbols-rounded' style='color:#059669;font-size:1.2rem;'>info</span>"
+            "<span style='font-size:0.95rem;font-weight:700;color:#1e293b;'>Comment ça marche ?</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        for ic, txt in [
+            ("<span class='material-symbols-rounded' style='font-size:1.1rem;vertical-align:middle;color:#7c3aed;'>looks_one</span>","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
+            ("<span class='material-symbols-rounded' style='font-size:1.1rem;vertical-align:middle;color:#7c3aed;'>looks_two</span>","<b>L'IA analyse</b> et propose un scénario"),
+            ("<span class='material-symbols-rounded' style='font-size:1.1rem;vertical-align:middle;color:#7c3aed;'>looks_3</span>","<b>Personnalisez</b> (Héros, Musique...)"),
+            ("<span class='material-symbols-rounded' style='font-size:1.1rem;vertical-align:middle;color:#7c3aed;'>looks_4</span>","<b>Téléchargez</b> le dessin animé !"),
+        ]:
+            st.markdown(f'<div class="sb-step">{ic} <span style="line-height:1.5;">{txt}</span></div>', unsafe_allow_html=True)
 
-        st.markdown('<div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid #6ee7b7; border-radius:16px; padding:20px; box-shadow:0 4px 18px rgba(16,185,129,0.1);">'
-                    '<div class="sb-title" style="margin-top:0; font-size:1.05rem; color:#4f46e5;">:material/info: Comment ça marche ?</div>',
-                    unsafe_allow_html=True)
-        for i,(ic,txt) in enumerate([
-            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_one</span>","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
-            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_two</span>","<b>L'IA analyse</b> et propose un scénario"),
-            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_3</span>","<b>Personnalisez</b> (Héros, Musique...)"),
-            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_4</span>","<b>Téléchargez</b> le dessin animé !"),
-        ],1):
-            st.markdown(f'<div class="sb-step">{ic} <span style="line-height:1.4;">{txt}</span></div>',unsafe_allow_html=True)
-
-        if st.session_state.step>1:
+        if st.session_state.step > 1:
             st.markdown("---")
-            if st.button(":material/refresh: Recommencer",use_container_width=True):
-                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
+            if st.button(":material/refresh: Recommencer", use_container_width=True):
+                for k in ["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
                     st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in ["narrations","img_prompts","chat_history"] else "" if k=="betise" else False if k in ["confirmed_yes","confirmed_no"] else None
                 st.rerun()
 
@@ -1541,118 +1547,107 @@ def main():
                       type="secondary", use_container_width=True,
                       key="btn_gen_video", disabled=True)
 
-        # ══════════════════════════════════════════════════
-        # SUGGESTIONS RAPIDES
-        # ─────────────────────────────────────────
+        # ══ SUGGESTIONS RAPIDES ══
+        st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
         st.markdown(
-            "<div style='background:linear-gradient(135deg,#7c3aed,#a855f7);"
-            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:24px;'>"
-            "<div style='display:flex;align-items:center;gap:8px;'>"
-            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>lightbulb</span>"
-            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Exemples rapides</span>"
-            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— cliquez pour démarrer</span>"
-            "</div></div>"
-            "<div style='background:#ffffff;border:1px solid #e9d5ff;border-top:none;"
-            "border-radius:0 0 14px 14px;padding:16px 20px;box-shadow:0 4px 12px rgba(124,58,237,0.08);'>",
+            "<style>[data-testid='stVerticalBlockBorderWrapper']:has(button[data-testid^='stBaseButton']) "
+            "{ border-color:#c4b5fd !important; border-radius:16px !important; }</style>",
             unsafe_allow_html=True
         )
-        def set_example(txt, thm):
-            st.session_state[_input_key] = txt
-            st.session_state.theme = thm
+        with st.container(border=True):
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#7c3aed,#a855f7);"
+                "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
+                "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>lightbulb</span>"
+                "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Exemples rapides</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— cliquez pour démarrer</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            def set_example(txt, thm):
+                st.session_state[_input_key] = txt
+                st.session_state.theme = thm
+            for i in range(0, len(EXAMPLES), 3):
+                cols = st.columns(3)
+                for j in range(3):
+                    idx = i + j
+                    if idx < len(EXAMPLES):
+                        ex = EXAMPLES[idx]
+                        with cols[j]:
+                            st.button(
+                                f"{ex['icon']} {ex['label']}", key=f"ex_{idx}",
+                                use_container_width=True, help=ex["text"],
+                                on_click=set_example, args=(ex["text"], ex["theme"])
+                            )
 
-        for i in range(0, len(EXAMPLES), 3):
-            cols = st.columns(3)
-            for j in range(3):
-                idx = i + j
-                if idx < len(EXAMPLES):
-                    ex = EXAMPLES[idx]
-                    with cols[j]:
-                        st.button(
-                            f"{ex['icon']} {ex['label']}", key=f"ex_{idx}",
-                            use_container_width=True, help=ex["text"],
-                            on_click=set_example, args=(ex["text"], ex["theme"])
-                        )
-        st.markdown("</div>", unsafe_allow_html=True)
 
 
 
 
+        # ══ CHOIX DU PERSONNAGE ══
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#2563eb,#3b82f6);"
+                "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
+                "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>sports_martial_arts</span>"
+                "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Personnage de la vidéo</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— l'IA ou votre choix</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            HEROES = [
+                {"icon": ":material/smart_toy:", "label": "Par défaut (L'IA choisit)"},
+                {"icon": ":material/face_3:", "label": "Petite fille"},
+                {"icon": ":material/face_6:", "label": "Petit garçon"},
+                {"icon": ":material/bug_report:", "label": "Spiderman"},
+                {"icon": ":material/flight:", "label": "Superman"},
+                {"icon": ":material/pest_control_rodent:", "label": "Tom & Jerry"},
+                {"icon": ":material/child_care:", "label": "Masha"},
+                {"icon": ":material/backpack:", "label": "Dora"},
+                {"icon": ":material/ac_unit:", "label": "Elsa"},
+            ]
+            def append_hero(hero_name):
+                current = st.session_state.get(_input_key, "")
+                if "Par défaut" in hero_name:
+                    addon = "Laissez l'IA choisir le personnage."
+                else:
+                    addon = f"Le héros de l'histoire sera {hero_name}."
+                if current:
+                    if not current.endswith(" "): current += " "
+                    st.session_state[_input_key] = current + addon
+                else:
+                    st.session_state[_input_key] = addon
+            for i in range(0, len(HEROES), 3):
+                cols = st.columns(3)
+                for j in range(3):
+                    idx = i + j
+                    if idx < len(HEROES):
+                        h = HEROES[idx]
+                        with cols[j]:
+                            st.button(
+                                f"{h['icon']} {h['label']}", key=f"hero_{idx}",
+                                use_container_width=True, on_click=append_hero, args=(h["label"],)
+                            )
 
-        # ══════════════════════════════════════════════════
-        # CHOIX DU PERSONNAGE
-        # ─────────────────────────────────────────
-        st.markdown(
-            "<div style='background:linear-gradient(135deg,#2563eb,#3b82f6);"
-            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:16px;'>"
-            "<div style='display:flex;align-items:center;gap:8px;'>"
-            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>sports_martial_arts</span>"
-            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Personnage de la vidéo</span>"
-            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— l'IA ou votre choix</span>"
-            "</div></div>"
-            "<div style='background:#ffffff;border:1px solid #bfdbfe;border-top:none;"
-            "border-radius:0 0 14px 14px;padding:16px 20px;box-shadow:0 4px 12px rgba(59,130,246,0.08);'>",
-            unsafe_allow_html=True
-        )
-
-        HEROES = [
-            {"icon": ":material/smart_toy:", "label": "Par défaut (L'IA choisit)"},
-            {"icon": ":material/face_3:", "label": "Petite fille"},
-            {"icon": ":material/face_6:", "label": "Petit garçon"},
-            {"icon": ":material/bug_report:", "label": "Spiderman"},
-            {"icon": ":material/flight:", "label": "Superman"},
-            {"icon": ":material/pest_control_rodent:", "label": "Tom & Jerry"},
-            {"icon": ":material/child_care:", "label": "Masha"},
-            {"icon": ":material/backpack:", "label": "Dora"},
-            {"icon": ":material/ac_unit:", "label": "Elsa"},
-        ]
-
-        def append_hero(hero_name):
-            current = st.session_state.get(_input_key, "")
-            if "Par défaut" in hero_name:
-                addon = "Laissez l'IA choisir le personnage."
-            else:
-                addon = f"Le héros de l'histoire sera {hero_name}."
-            if current:
-                if not current.endswith(" "): current += " "
-                st.session_state[_input_key] = current + addon
-            else:
-                st.session_state[_input_key] = addon
-
-        for i in range(0, len(HEROES), 3):
-            cols = st.columns(3)
-            for j in range(3):
-                idx = i + j
-                if idx < len(HEROES):
-                    h = HEROES[idx]
-                    with cols[j]:
-                        st.button(
-                            f"{h['icon']} {h['label']}", key=f"hero_{idx}",
-                            use_container_width=True, on_click=append_hero, args=(h["label"],)
-                        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
-        # ══════════════════════════════════════════════════
-        # CHOIX DU NARRATEUR
-        # ─────────────────────────────────────────
-        st.markdown(
-            "<div style='background:linear-gradient(135deg,#db2777,#ec4899);"
-            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:16px;'>"
-            "<div style='display:flex;align-items:center;gap:8px;'>"
-            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>mic</span>"
-            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Voix du Narrateur</span>"
-            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— qui raconte l'histoire</span>"
-            "</div></div>"
-            "<div style='background:#ffffff;border:1px solid #fbcfe8;border-top:none;"
-            "border-radius:0 0 14px 14px;padding:16px 20px;margin-bottom:8px;box-shadow:0 4px 12px rgba(219,39,119,0.08);'>",
-            unsafe_allow_html=True
-        )
-        VOICES = ["Par défaut (selon l'enfant)", "Femme (Douce)", "Homme (Chaleureux)", "Petite Fille", "Petit Garçon"]
-        if "narrator" not in st.session_state:
-            st.session_state.narrator = VOICES[0]
-        st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES,
-            index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0,
-            label_visibility="collapsed")
-        st.markdown("</div>", unsafe_allow_html=True)
+        # ══ CHOIX DU NARRATEUR ══
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#db2777,#ec4899);"
+                "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
+                "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>mic</span>"
+                "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Voix du Narrateur</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— qui raconte l'histoire</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            VOICES = ["Par défaut (selon l'enfant)", "Femme (Douce)", "Homme (Chaleureux)", "Petite Fille", "Petit Garçon"]
+            if "narrator" not in st.session_state:
+                st.session_state.narrator = VOICES[0]
+            st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES,
+                index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0,
+                label_visibility="collapsed")
 
     # ══════════════════════════════════════
     #  ÉTAPE 2 — SCÉNARIO
@@ -1834,4 +1829,3 @@ def main():
 if __name__=="__main__":
     main()
     
-
