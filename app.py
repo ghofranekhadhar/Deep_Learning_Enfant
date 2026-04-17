@@ -896,12 +896,11 @@ CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap');
 
 html,body,.stApp,[data-testid="stAppViewContainer"]{
-    background:linear-gradient(160deg, #f0f4ff 0%, #fdf2f8 50%, #f0fdf4 100%)!important;
+    background:#ffffff!important;
     font-family:'Inter',system-ui,sans-serif;
-    background-attachment: fixed!important;
 }
 [data-testid="stHeader"]{background:transparent!important;}
-[data-testid="stSidebar"]{background:linear-gradient(180deg,#fefcff 0%,#f8f0ff 100%)!important;border-right:1px solid #ede9fe;padding-top:2rem;}
+[data-testid="stSidebar"]{background:#ffffff!important;border-right:1px solid #f0f0f0;padding-top:2rem;}
 .block-container{background:transparent!important;padding-top:2rem!important;max-width:840px!important;}
 
 /* Typography */
@@ -1209,7 +1208,6 @@ def main():
             ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_4</span>","<b>Téléchargez</b> le dessin animé !"),
         ],1):
             st.markdown(f'<div class="sb-step">{ic} <span style="line-height:1.4;">{txt}</span></div>',unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
         if st.session_state.step>1:
             st.markdown("---")
@@ -1547,14 +1545,15 @@ def main():
         # SUGGESTIONS RAPIDES
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='background:linear-gradient(135deg,#f5f3ff,#ede9fe);"
-            "border:1px solid #c4b5fd;border-radius:20px;"
-            "padding:20px 24px;margin-top:24px;box-shadow:0 6px 20px rgba(124,58,237,0.12);'>"
-            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:14px;'>"
-            "<span class='material-symbols-rounded' style='color:#7c3aed;font-size:1.3rem;'>lightbulb</span>"
-            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Exemples rapides</span>"
-            "<span style='font-size:0.78rem;color:#8b5cf6;margin-left:4px;'>— cliquez pour démarrer</span>"
-            "</div>",
+            "<div style='background:linear-gradient(135deg,#7c3aed,#a855f7);"
+            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:24px;'>"
+            "<div style='display:flex;align-items:center;gap:8px;'>"
+            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>lightbulb</span>"
+            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Exemples rapides</span>"
+            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— cliquez pour démarrer</span>"
+            "</div></div>"
+            "<div style='background:#ffffff;border:1px solid #e9d5ff;border-top:none;"
+            "border-radius:0 0 14px 14px;padding:16px 20px;box-shadow:0 4px 12px rgba(124,58,237,0.08);'>",
             unsafe_allow_html=True
         )
         def set_example(txt, thm):
@@ -1583,14 +1582,15 @@ def main():
         # CHOIX DU PERSONNAGE
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='background:linear-gradient(135deg,#eff6ff,#dbeafe);"
-            "border:1px solid #93c5fd;border-radius:20px;"
-            "padding:20px 24px;margin-top:16px;box-shadow:0 6px 20px rgba(59,130,246,0.12);'>"
-            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:6px;'>"
-            "<span class='material-symbols-rounded' style='color:#2563eb;font-size:1.3rem;'>sports_martial_arts</span>"
-            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Personnage de la vidéo</span>"
-            "</div>"
-            "<p style='font-size:0.82rem;color:#3b82f6;margin:0 0 14px 0;'>Choisissez un héros, ou laissez l'IA décider.</p>",
+            "<div style='background:linear-gradient(135deg,#2563eb,#3b82f6);"
+            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:16px;'>"
+            "<div style='display:flex;align-items:center;gap:8px;'>"
+            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>sports_martial_arts</span>"
+            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Personnage de la vidéo</span>"
+            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— l'IA ou votre choix</span>"
+            "</div></div>"
+            "<div style='background:#ffffff;border:1px solid #bfdbfe;border-top:none;"
+            "border-radius:0 0 14px 14px;padding:16px 20px;box-shadow:0 4px 12px rgba(59,130,246,0.08);'>",
             unsafe_allow_html=True
         )
 
@@ -1635,14 +1635,15 @@ def main():
         # CHOIX DU NARRATEUR
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='background:linear-gradient(135deg,#fff1f2,#ffe4e6);"
-            "border:1px solid #fca5a5;border-radius:20px;"
-            "padding:20px 24px;margin-top:16px;margin-bottom:8px;box-shadow:0 6px 20px rgba(239,68,68,0.1);'>"
-            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:6px;'>"
-            "<span class='material-symbols-rounded' style='color:#dc2626;font-size:1.3rem;'>mic</span>"
-            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Voix du Narrateur</span>"
-            "</div>"
-            "<p style='font-size:0.82rem;color:#ef4444;margin:0 0 12px 0;'>Choisissez qui raconte l'histoire.</p>",
+            "<div style='background:linear-gradient(135deg,#db2777,#ec4899);"
+            "border-radius:14px 14px 0 0;padding:12px 20px;margin-top:16px;'>"
+            "<div style='display:flex;align-items:center;gap:8px;'>"
+            "<span class='material-symbols-rounded' style='color:#fff;font-size:1.2rem;'>mic</span>"
+            "<span style='font-size:0.88rem;font-weight:700;color:#fff;'>Voix du Narrateur</span>"
+            "<span style='font-size:0.75rem;color:rgba(255,255,255,0.75);margin-left:4px;'>— qui raconte l'histoire</span>"
+            "</div></div>"
+            "<div style='background:#ffffff;border:1px solid #fbcfe8;border-top:none;"
+            "border-radius:0 0 14px 14px;padding:16px 20px;margin-bottom:8px;box-shadow:0 4px 12px rgba(219,39,119,0.08);'>",
             unsafe_allow_html=True
         )
         VOICES = ["Par défaut (selon l'enfant)", "Femme (Douce)", "Homme (Chaleureux)", "Petite Fille", "Petit Garçon"]
