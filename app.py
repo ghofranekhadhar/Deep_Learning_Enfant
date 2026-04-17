@@ -137,7 +137,7 @@ Analyse cette phrase parentale et réponds UNIQUEMENT en JSON valide sans markdo
 }
 Phrase : {betise}"""
 
-SCN_PROMPT="""Tu es auteur de livres éducatifs pour enfants 3-8 ans. Génère une chanson narrative rimée.
+SCN_PROMPT="""Tu es auteur de livres éducatifs pour enfants 3-8 ans. Génère une histoire narrative d'aventure.
 INSTRUCTION DE STYLE : Les phrases de narration (scenes_narration) DOIVENT être racontées avec une voix de conteur très enthousiaste ! Utilise des exclamations, des onomatopées (Boïng, Oups, Aïe) et des questions pour captiver l'enfant !
 Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
 {{"prenom":"{prenom}","age":{age},"genre":"{genre}","hero":"{hero}","danger_court":"3 mots max",
@@ -160,7 +160,7 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
   "Narration Scène 15 : Adresse-toi directement au spectateur [{prenom}] pour récapituler la bêtise de [{hero}], et conclus positivement. (ATTENTION: NE LUI RE-DIS PAS BONJOUR ICI, juste un message de conclusion !)"
 ],
 "image_prompts":[
-  "Describe scene 1 background in English. IMPORTANT: Show the main hero [{hero}] waving happily at the camera.",
+  "Describe scene 1 background in English. IMPORTANT: Show the main hero [{hero}] looking DIRECTLY at the camera lens, making direct eye contact with the viewer, and waving happily.",
   "Describe scene 2 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 3 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 4 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
@@ -174,7 +174,7 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
   "Describe scene 12 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 13 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
   "Describe scene 14 background in English. Include [{hero}]. Include friends ONLY IF relevant to this scene's story.",
-  "Describe scene 15 background in English. IMPORTANT: Show the main hero [{hero}] waving goodbye to the camera."
+  "Describe scene 15 background in English. IMPORTANT: Show the main hero [{hero}] looking DIRECTLY into the camera, making direct eye contact with the child viewer, waving goodbye or giving a thumbs up."
 ],
 "lieux_scenes":[
   "phrase courte (1-3 mots max) SANS AUCUN EMOJI pour indiquer le lieu (ex: Dans la cuisine)",
@@ -210,7 +210,7 @@ Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
   "état émotionnel scène 14",
   "état émotionnel scène 15"
 ],
-"song":{{"titre":"La Chanson de {prenom} et [danger] (style {hero})",
+"song":{{"titre":"L'Histoire de {prenom} et [danger] (style {hero})",
 "intro":"2-3 phrases d'accroche rimées","acte1":"vie normale 3-4 phrases rimées",
 "acte2":"découverte objet dangereux 3-4 phrases rimées",
 "refrain1":"avertissement NON NON NON 3-4 phrases rimées",
@@ -356,7 +356,7 @@ def scenario_ai(betise: str, val: dict, api_key: str) -> dict:
     p = p.replace("{hero}", str(hero))
     
     if hero and hero != "Par défaut":
-        p += f"\n\n🚨 INSTRUCTION ABSOLUE : Le parent a choisi le héros '{hero}'. Ce héros ({hero}) DOIT ÊTRE LE PERSONNAGE PRINCIPAL de l'histoire et de la chanson ! C'est {hero} qui fait la bêtise et qui apprend la leçon, PAS un personnage secondaire qui vient l'aider !"
+        p += f"\n\n🚨 INSTRUCTION ABSOLUE : Le parent a choisi le héros '{hero}'. Ce héros ({hero}) DOIT ÊTRE LE PERSONNAGE PRINCIPAL de l'histoire et de la narration ! C'est {hero} qui fait la bêtise et qui apprend la leçon, PAS un personnage secondaire qui vient l'aider !"
         
     return _call(api_key, p, 3000)
 
@@ -367,7 +367,7 @@ def parse_scenario(d: dict) -> tuple:
     hero = d.get("hero") or "Par défaut"
     char = Character(prenom=str(prenom), age=int(age), genre=str(genre), hero=str(hero))
     s = d.get("song", {})
-    song = SongData(titre=s.get("titre",f"Chanson de {char.prenom}"), intro=s.get("intro","..."), acte1=s.get("acte1","..."),
+    song = SongData(titre=s.get("titre",f"Histoire de {char.prenom}"), intro=s.get("intro","..."), acte1=s.get("acte1","..."),
         acte2=s.get("acte2","..."), refrain1=s.get("refrain1","..."), acte3=s.get("acte3","..."),
         acte4=s.get("acte4","..."), refrain2=s.get("refrain2","..."), acte5=s.get("acte5","..."),
         acte6=s.get("acte6","..."), outro=s.get("outro","..."))
@@ -523,7 +523,7 @@ def anim_off(action,frame):
     return 0,int(3*math.sin(frame*.07))
 
 def draw_char(draw,cx,cy,action,emotion,frame,genre,hero="Par défaut",is_narrating=True):
-    S=int(Cfg.SIZE * 0.75); dx,dy=anim_off(action,frame); x,y=cx+dx,cy+dy
+    S=int(Cfg.SIZE * 0.60); dx,dy=anim_off(action,frame); x,y=cx+dx,cy+dy
     shirt=P.SHIRT_G if genre=="fille" else P.SHIRT_B
     hair=P.HAIR_G if genre=="fille" else P.HAIR_B
     eye_c=P.EYE_G if genre=="fille" else P.EYE_B
@@ -693,8 +693,11 @@ def draw_ui(img, scene, f_in, song, genre):
     # 📍 Lieu — droite, fond pill arrondi généré par l'IA
     lieu_raw = scene.lieu_texte
     if isinstance(lieu_raw, list):
-        lieu_raw = lieu_raw[0] if lieu_raw else "📍 Inconnu"
-    lieu = str(lieu_raw) if lieu_raw else "📍 Inconnu"
+        lieu_raw = lieu_raw[0] if lieu_raw else "Inconnu"
+    lieu = str(lieu_raw) if lieu_raw else "Inconnu"
+    import re
+    # Supprime tous les émojis et caractères non-textuels pour éviter le bug d'affichage PIL
+    lieu = re.sub(r'[^\w\s.,\'!-]', '', lieu, flags=re.UNICODE).strip()
     try:
         lw = draw.textlength(lieu, font=F["small"])
     except:
@@ -738,8 +741,8 @@ def draw_ui(img, scene, f_in, song, genre):
         if end_bracket != -1:
             narr = narr[end_bracket + 1:].strip()
     
-    # Garder la largeur à 42 pour que le texte n'écrase pas le personnage animé Python superposé à droite
-    lines = wrap_text(narr, 42)[:3]
+    # Garder la largeur à 36 pour que le texte n'écrase pas le personnage animé Python superposé à droite
+    lines = wrap_text(narr, 36)[:4]
     for i, line in enumerate(lines):
         # Première ligne un peu plus grande
         font = F["med"] if i == 0 else F["small"]
@@ -762,7 +765,7 @@ def render_scene(scene, genre, song, gframe, td):
     S = Cfg.SIZE
     # Le personnage se tient en bas à droite au premier plan
     char_x = int(S * 0.85)
-    char_y = int(S * 0.82)
+    char_y = int(S * 0.84)
     for f in range(scene.duree):
         img = Image.new("RGBA", (S, S))
         draw = ImageDraw.Draw(img)
@@ -1638,8 +1641,8 @@ def main():
         
         st.markdown(timeline_html, unsafe_allow_html=True)
         
-        # Chanson dans l'expander (replié par défaut pour plus de propreté)
-        with st.expander("🎵 Voir les paroles complètes de la chanson", expanded=False):
+        # Histoire complète dans l'expander (replié par défaut pour plus de propreté)
+        with st.expander("📖 Voir le texte complet de l'histoire", expanded=False):
             for lbl,txt in [
                 ("🎵 Introduction",song.intro),("📖 Acte I — Vie normale",song.acte1),
                 ("😮 Acte II — La tentation",song.acte2),("🚨 Refrain 1 — Avertissement",song.refrain1),
