@@ -1137,19 +1137,28 @@ hr{border-color:#f1f5f9!important;}
 
 /* Section cards — tinted pastel backgrounds (step 1 containers) */
 [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(1){
-    background:linear-gradient(145deg,rgba(124,58,237,0.06),rgba(168,85,247,0.04))!important;
-    border-color:#c4b5fd!important;
-    backdrop-filter:blur(8px)!important;
+    background:linear-gradient(145deg,rgba(124,58,237,0.22),rgba(168,85,247,0.12))!important;
+    border-color:#a78bfa!important;
+    border-width:1.5px!important;
+    backdrop-filter:blur(10px)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+    box-shadow:0 4px 20px rgba(124,58,237,0.12)!important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(2){
-    background:linear-gradient(145deg,rgba(37,99,235,0.06),rgba(59,130,246,0.04))!important;
-    border-color:#93c5fd!important;
-    backdrop-filter:blur(8px)!important;
+    background:linear-gradient(145deg,rgba(37,99,235,0.22),rgba(59,130,246,0.12))!important;
+    border-color:#60a5fa!important;
+    border-width:1.5px!important;
+    backdrop-filter:blur(10px)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+    box-shadow:0 4px 20px rgba(37,99,235,0.12)!important;
 }
 [data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(3){
-    background:linear-gradient(145deg,rgba(219,39,119,0.06),rgba(236,72,153,0.04))!important;
-    border-color:#f9a8d4!important;
-    backdrop-filter:blur(8px)!important;
+    background:linear-gradient(145deg,rgba(219,39,119,0.22),rgba(236,72,153,0.12))!important;
+    border-color:#f472b6!important;
+    border-width:1.5px!important;
+    backdrop-filter:blur(10px)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+    box-shadow:0 4px 20px rgba(219,39,119,0.12)!important;
 }
 #MainMenu,footer{visibility:hidden;}
 </style>
