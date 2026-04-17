@@ -1134,6 +1134,23 @@ hr{border-color:#f1f5f9!important;}
     border: 1px solid #f1f5f9!important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.02)!important;
 }
+
+/* Section cards — tinted pastel backgrounds (step 1 containers) */
+[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(1){
+    background:linear-gradient(145deg,rgba(124,58,237,0.06),rgba(168,85,247,0.04))!important;
+    border-color:#c4b5fd!important;
+    backdrop-filter:blur(8px)!important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(2){
+    background:linear-gradient(145deg,rgba(37,99,235,0.06),rgba(59,130,246,0.04))!important;
+    border-color:#93c5fd!important;
+    backdrop-filter:blur(8px)!important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:nth-of-type(3){
+    background:linear-gradient(145deg,rgba(219,39,119,0.06),rgba(236,72,153,0.04))!important;
+    border-color:#f9a8d4!important;
+    backdrop-filter:blur(8px)!important;
+}
 #MainMenu,footer{visibility:hidden;}
 </style>
 """
