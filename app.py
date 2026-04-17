@@ -108,12 +108,12 @@ THEMES = {
 }
 
 EXAMPLES = [
-    {"icon":"⚡","label":"Prises électriques","text":"Mon fils Adam, 5 ans, touche les prises électriques","theme":"electric"},
-    {"icon":"🔪","label":"Couteaux","text":"Mon fils Youssef, 7 ans, joue avec les couteaux de cuisine","theme":"kitchen"},
-    {"icon":"🏊","label":"Piscine","text":"Ma fille Lina, 4 ans, s'approche seule du bord de la piscine","theme":"pool"},
-    {"icon":"🚗","label":"Traverser la rue","text":"Mon fils Rayan, 6 ans, traverse la rue sans regarder","theme":"road"},
-    {"icon":"🔥","label":"Feu / Gaz","text":"Ma fille Sara, 5 ans, allume les boutons du gaz","theme":"fire"},
-    {"icon":"🤝","label":"Frappe ses amis","text":"Mon fils Omar, 5 ans, frappe ses camarades de classe","theme":"behaviour"},
+    {"icon":":material/electric_bolt:","label":"Prises","text":"Mon fils Adam, 5 ans, touche les prises électriques","theme":"electric"},
+    {"icon":":material/restaurant:","label":"Couteaux","text":"Mon fils Youssef, 7 ans, joue avec les couteaux de cuisine","theme":"kitchen"},
+    {"icon":":material/medication:","label":"Médicaments","text":"Ma fille Inès, 6 ans, mange des médicaments","theme":"meds"},
+    {"icon":":material/pool:","label":"Piscine","text":"Ma fille Lina, 4 ans, s'approche seule du bord de la piscine","theme":"pool"},
+    {"icon":":material/directions_car:","label":"Traverser","text":"Mon fils Rayan, 6 ans, traverse la rue sans regarder","theme":"road"},
+    {"icon":":material/local_fire_department:","label":"Feu / Gaz","text":"Ma fille Sara, 5 ans, allume les boutons du gaz","theme":"fire"},
 ]
 
 # ─────────────────────────────────────────
@@ -1116,11 +1116,13 @@ hr{border-color:#e2e8f0!important;}
 #  HELPERS UI
 # ─────────────────────────────────────────
 def stepper(cur:int)->str:
-    labels=["📝 La bêtise","🎬 Scénario","🎉 Vidéo"]
-    icons=["📝","🎬","🎉"]
+    labels=["La bêtise","Scénario","Vidéo"]
+    icons=["<span class='material-symbols-rounded' style='font-size:18px;'>edit_document</span>",
+           "<span class='material-symbols-rounded' style='font-size:18px;'>movie</span>",
+           "<span class='material-symbols-rounded' style='font-size:18px;'>celebration</span>"]
     parts=[]
     for i in range(1,4):
-        if i<cur:     dc,lc2,nt="done","done","✓"
+        if i<cur:     dc,lc2,nt="done","done","<span class='material-symbols-rounded' style='font-size:18px;'>check</span>"
         elif i==cur:  dc,lc2,nt="active","active",icons[i-1]
         else:         dc,lc2,nt="","",str(i)
         parts.append(f'<div class="step-col"><div class="step-dot {dc}">{nt}</div>'
@@ -1153,22 +1155,22 @@ def main():
     #  SIDEBAR — CLÉ API GROQ
     # ══════════════════════════════════════
     with st.sidebar:
-        st.markdown('<div class="sb-title">🔑 Clé API Groq</div>',unsafe_allow_html=True)
+        st.markdown('<div class="sb-title">:material/key: Clé API Groq</div>',unsafe_allow_html=True)
         kt="text"if st.session_state.show_key else"password"
         key=st.text_input("Clé",value=st.session_state.api_key,type=kt,
             placeholder="gsk_...",label_visibility="collapsed")
         st.session_state.api_key=key
         c1,c2=st.columns([3,1])
         with c2:
-            if st.button("👁"if not st.session_state.show_key else"🙈",key="sbv",help="Afficher/Masquer"):
+            if st.button(":material/visibility:"if not st.session_state.show_key else":material/visibility_off:",key="sbv",help="Afficher/Masquer"):
                 st.session_state.show_key=not st.session_state.show_key; st.rerun()
         valid_key=bool(key and key.strip().startswith("gsk_"))
-        if valid_key: st.success("✅ Clé valide")
-        else: st.warning("Clé non renseignée")
+        if valid_key: st.success("Clé valide", icon=":material/check_circle:")
+        else: st.warning("Clé non renseignée", icon=":material/warning:")
 
 
         st.markdown("---")
-        st.markdown("**📋 Comment ça marche ?**")
+        st.markdown("**:material/info: Comment ça marche ?**")
         for i,(ic,txt) in enumerate([
             ("1️⃣","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
             ("2️⃣","<b>L'IA analyse</b> et propose un scénario"),
@@ -1179,15 +1181,15 @@ def main():
 
         if st.session_state.step>1:
             st.markdown("---")
-            if st.button("🔄 Recommencer",use_container_width=True):
+            if st.button(":material/refresh: Recommencer",use_container_width=True):
                 for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
                     st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in ["narrations","img_prompts","chat_history"] else "" if k=="betise" else False if k in ["confirmed_yes","confirmed_no"] else None
                 st.rerun()
 
     # ── HÉRÔ ──
     st.markdown("""<div class="hero">
-        <h1>🎬 Studio Animé Éducatif</h1>
-        <p>Transforme la bêtise de ton enfant en dessin animé éducatif personnalisé ✨</p>
+        <h1><span class="material-symbols-rounded" style="font-size: 2.2rem; vertical-align: bottom;">movie</span> Studio Animé Éducatif</h1>
+        <p>Transforme la bêtise de ton enfant en dessin animé éducatif personnalisé <span class="material-symbols-rounded" style="font-size: 1.1rem; vertical-align: middle;">auto_awesome</span></p>
     </div>""",unsafe_allow_html=True)
 
     st.markdown(stepper(st.session_state.step),unsafe_allow_html=True)
@@ -1206,7 +1208,7 @@ def main():
         def ds_ai_bubble(content, ts=""):
             return (
                 '<div class="ds-msg-ai">'
-                '<div class="ds-avatar-ai">🤖</div>'
+                '<div class="ds-avatar-ai"><span class="material-symbols-rounded" style="color:white;font-size:1.1rem;">smart_toy</span></div>'
                 '<div>'
                 f'<div class="ds-bubble-ai">{content}</div>'
                 + (f'<span class="ds-time">{ts}</span>' if ts else '') +
@@ -1216,7 +1218,7 @@ def main():
         # ─ EN-TÊTE (hors cadre) ─
         st.markdown(
             '<div class="chat-section-header">'
-            '<div class="csh-icon">🎓</div>'
+            '<div class="csh-icon"><span class="material-symbols-rounded" style="color:white;font-size:1.4rem;">school</span></div>'
             '<div>'
             '<div class="csh-title">Assistant Pédagogique</div>'
             '<div class="csh-sub">Discutez librement · Détection automatique des situations de danger</div>'
@@ -1460,10 +1462,10 @@ def main():
             _bg1, _bg2 = st.columns([3, 1])
             with _bg1:
                 if st.button(
-                    "🎬  GÉNÉRER LE DESSIN ANIMÉ ÉDUCATIF !",
+                    ":material/movie: GÉNÉRER LE DESSIN ANIMÉ ÉDUCATIF !",
                     type="primary", use_container_width=True, key="btn_gen_video"
                 ):
-                    with st.spinner("🎵 Création du scénario animé…"):
+                    with st.spinner("Création du scénario animé…"):
                         try:
                             _data = scenario_ai(
                                 st.session_state.betise, _v, st.session_state.api_key)
@@ -1482,8 +1484,8 @@ def main():
                         except Exception as _e:
                             st.error(f"Erreur : {_e}")
             with _bg2:
-                if st.button("🔄 Réinterpréter", use_container_width=True, key="btn_reinterp"):
-                    with st.spinner("🤖 Nouvelle réflexion…"):
+                if st.button(":material/refresh: Réinterpréter", use_container_width=True, key="btn_reinterp"):
+                    with st.spinner("Nouvelle réflexion…"):
                         import time; time.sleep(1)
                         try:
                             _r3 = chat_ai(st.session_state.betise, st.session_state.api_key, st.session_state.val)
@@ -1505,7 +1507,7 @@ def main():
                 "</div>",
                 unsafe_allow_html=True
             )
-            st.button("🎬  Générer le dessin animé éducatif",
+            st.button(":material/movie: Générer le dessin animé éducatif",
                       type="secondary", use_container_width=True,
                       key="btn_gen_video", disabled=True)
 
@@ -1555,15 +1557,15 @@ def main():
         )
 
         HEROES = [
-            {"icon": "🤖", "label": "Par défaut (L'IA choisit)"},
-            {"icon": "👧", "label": "Petite fille"},
-            {"icon": "👦", "label": "Petit garçon"},
-            {"icon": "🕸️", "label": "Spiderman"},
-            {"icon": "🦸‍♂️", "label": "Superman"},
-            {"icon": "🐭", "label": "Tom & Jerry"},
-            {"icon": "🐻", "label": "Masha"},
-            {"icon": "🎒", "label": "Dora"},
-            {"icon": "❄️", "label": "Elsa"},
+            {"icon": ":material/smart_toy:", "label": "Par défaut (L'IA choisit)"},
+            {"icon": ":material/face_3:", "label": "Petite fille"},
+            {"icon": ":material/face_6:", "label": "Petit garçon"},
+            {"icon": ":material/bug_report:", "label": "Spiderman"},
+            {"icon": ":material/flight:", "label": "Superman"},
+            {"icon": ":material/pest_control_rodent:", "label": "Tom & Jerry"},
+            {"icon": ":material/child_care:", "label": "Masha"},
+            {"icon": ":material/backpack:", "label": "Dora"},
+            {"icon": ":material/ac_unit:", "label": "Elsa"},
         ]
 
         def append_hero(hero_name):
@@ -1683,10 +1685,10 @@ def main():
         st.markdown("<br>",unsafe_allow_html=True)
         cb,cg=st.columns([1,2])
         with cb:
-            if st.button("← Modifier",use_container_width=True):
+            if st.button(":material/arrow_back: Modifier",use_container_width=True):
                 st.session_state.step=1; st.session_state.val=None; st.rerun()
         with cg:
-            if st.button("🎬 Générer la vidéo maintenant!",type="primary",use_container_width=True):
+            if st.button(":material/movie: Générer la vidéo maintenant!",type="primary",use_container_width=True):
                 st.session_state.step=3; st.rerun()
 
     # ══════════════════════════════════════
@@ -1755,11 +1757,11 @@ def main():
             info_txt.empty()
             status.update(label="✅ Vidéo prête!",state="complete",expanded=False)
 
-        st.success(f"🎉 La vidéo de **{char.prenom}** est prête!")
+        st.success(f"La vidéo de **{char.prenom}** est prête!", icon=":material/celebration:")
         st.video(vb)
         danger_slug=data.get("danger_court","").replace(" ","_")
         st.download_button(
-            label=f"💾 Télécharger la vidéo — {char.prenom}.mp4",
+            label=f":material/save: Télécharger la vidéo — {char.prenom}.mp4",
             data=vb,
             file_name=f"anime_{char.prenom.lower()}_{danger_slug}.mp4",
             mime="video/mp4",use_container_width=True,type="primary")
@@ -1768,17 +1770,17 @@ def main():
         c1, c2 = st.columns(2)
         with c1:
             # Relancer avec les mêmes données (Générera de nouvelles images avec l'IA)
-            if st.button("🔄 Regénérer la vidéo", use_container_width=True, type="primary"):
+            if st.button(":material/refresh: Regénérer la vidéo", use_container_width=True, type="primary"):
                 st.rerun()
         with c2:
             # Retour à l'étape 2 (modifier le scénario)
-            if st.button("🔙 Retour au scénario", use_container_width=True):
+            if st.button(":material/arrow_back: Retour au scénario", use_container_width=True):
                 st.session_state.step = 2
                 st.rerun()
                 
         st.markdown("<br>", unsafe_allow_html=True)
         # Revenir complètement au début pour une toute nouvelle bêtise
-        if st.button("🏠 Créer une toute nouvelle histoire (Accueil)", use_container_width=True):
+        if st.button(":material/home: Créer une toute nouvelle histoire (Accueil)", use_container_width=True):
             for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
                 st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in["narrations","img_prompts","chat_history"] else "" if k=="betise" else False if k in["confirmed_yes","confirmed_no"] else None
             st.rerun()
