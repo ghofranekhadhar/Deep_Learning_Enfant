@@ -1180,7 +1180,9 @@ def main():
     #  SIDEBAR — CLÉ API GROQ
     # ══════════════════════════════════════
     with st.sidebar:
-        st.markdown('<div class="sb-title">:material/key: Clé API Groq</div>',unsafe_allow_html=True)
+        st.markdown('<div style="background:#ffffff; border:1px solid #f1f5f9; border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 4px 12px rgba(0,0,0,0.02);">'
+                    '<div class="sb-title" style="margin-top:0; font-size:1.05rem;">:material/key: Clé API Groq</div>',
+                    unsafe_allow_html=True)
         kt="text"if st.session_state.show_key else"password"
         key=st.text_input("Clé",value=st.session_state.api_key,type=kt,
             placeholder="gsk_...",label_visibility="collapsed")
@@ -1191,18 +1193,21 @@ def main():
                 st.session_state.show_key=not st.session_state.show_key; st.rerun()
         valid_key=bool(key and key.strip().startswith("gsk_"))
         if valid_key: st.success("Clé valide", icon=":material/check_circle:")
-        else: st.warning("Clé non renseignée", icon=":material/warning:")
+        else: st.warning("Clé manquante", icon=":material/warning:")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
-        st.markdown("---")
-        st.markdown("**:material/info: Comment ça marche ?**")
+        st.markdown('<div style="background:linear-gradient(135deg, #f8fafc, #ffffff); border:1px solid #f1f5f9; border-radius:16px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.02);">'
+                    '<div class="sb-title" style="margin-top:0; font-size:1.05rem; color:#4f46e5;">:material/info: Comment ça marche ?</div>',
+                    unsafe_allow_html=True)
         for i,(ic,txt) in enumerate([
-            ("1️⃣","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
-            ("2️⃣","<b>L'IA analyse</b> et propose un scénario"),
-            ("3️⃣","<b>Personnalisez</b> (Héros, Musique...)"),
-            ("4️⃣","<b>Téléchargez</b> le dessin animé vidéo !"),
+            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_one</span>","<b>Racontez</b> la bêtise de l'enfant dans le chat"),
+            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_two</span>","<b>L'IA analyse</b> et propose un scénario"),
+            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_3</span>","<b>Personnalisez</b> (Héros, Musique...)"),
+            ("<span class='material-symbols-rounded' style='font-size:1.2rem;vertical-align:middle;color:#64748b;'>looks_4</span>","<b>Téléchargez</b> le dessin animé !"),
         ],1):
             st.markdown(f'<div class="sb-step">{ic} <span style="line-height:1.4;">{txt}</span></div>',unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if st.session_state.step>1:
             st.markdown("---")
@@ -1537,12 +1542,15 @@ def main():
                       key="btn_gen_video", disabled=True)
 
         # ══════════════════════════════════════════════════
-        # SUGGESTIONS RAPIDES (déclenchent l'analyse auto)
+        # SUGGESTIONS RAPIDES
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='margin-top:16px;margin-bottom:8px;'>"
-            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
-            "text-transform:uppercase;letter-spacing:0.06em;'>💡 Exemples rapides pour commencer</span>"
+            "<div style='background:#ffffff;border:1px solid #e0e7ff;border-radius:20px;"
+            "padding:20px 24px;margin-top:24px;box-shadow:0 4px 12px rgba(79,70,229,0.06);'>"
+            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:14px;'>"
+            "<span class='material-symbols-rounded' style='color:#4f46e5;font-size:1.3rem;'>lightbulb</span>"
+            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Exemples rapides</span>"
+            "<span style='font-size:0.78rem;color:#94a3b8;margin-left:4px;'>— cliquez pour démarrer</span>"
             "</div>",
             unsafe_allow_html=True
         )
@@ -1562,6 +1570,7 @@ def main():
                             use_container_width=True, help=ex["text"],
                             on_click=set_example, args=(ex["text"], ex["theme"])
                         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 
@@ -1571,13 +1580,13 @@ def main():
         # CHOIX DU PERSONNAGE
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='margin-top:20px;margin-bottom:8px;'>"
-            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
-            "text-transform:uppercase;letter-spacing:0.06em;'>🦸 Personnage de la vidéo</span><br>"
-            "<span style='font-size:0.8rem;color:#8492a6;'>"
-            "Cliquez pour choisir un héros spécifique, ou laissez l'IA choisir par défaut !"
-            "</span>"
-            "</div>",
+            "<div style='background:#ffffff;border:1px solid #e0e7ff;border-radius:20px;"
+            "padding:20px 24px;margin-top:16px;box-shadow:0 4px 12px rgba(79,70,229,0.06);'>"
+            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:6px;'>"
+            "<span class='material-symbols-rounded' style='color:#4f46e5;font-size:1.3rem;'>sports_martial_arts</span>"
+            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Personnage de la vidéo</span>"
+            "</div>"
+            "<p style='font-size:0.82rem;color:#94a3b8;margin:0 0 14px 0;'>Choisissez un héros, ou laissez l'IA décider.</p>",
             unsafe_allow_html=True
         )
 
@@ -1595,15 +1604,12 @@ def main():
 
         def append_hero(hero_name):
             current = st.session_state.get(_input_key, "")
-            
             if "Par défaut" in hero_name:
                 addon = "Laissez l'IA choisir le personnage."
             else:
                 addon = f"Le héros de l'histoire sera {hero_name}."
-                
             if current:
-                if not current.endswith(" "):
-                    current += " "
+                if not current.endswith(" "): current += " "
                 st.session_state[_input_key] = current + addon
             else:
                 st.session_state[_input_key] = addon
@@ -1619,26 +1625,28 @@ def main():
                             f"{h['icon']} {h['label']}", key=f"hero_{idx}",
                             use_container_width=True, on_click=append_hero, args=(h["label"],)
                         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
         # ══════════════════════════════════════════════════
         # CHOIX DU NARRATEUR
         # ─────────────────────────────────────────
         st.markdown(
-            "<div style='margin-top:20px;margin-bottom:8px;'>"
-            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
-            "text-transform:uppercase;letter-spacing:0.06em;'>🎙️ Voix du Narrateur</span><br>"
-            "<span style='font-size:0.8rem;color:#8492a6;'>"
-            "Choisissez qui raconte l'histoire !"
-            "</span>"
-            "</div>",
+            "<div style='background:#ffffff;border:1px solid #e0e7ff;border-radius:20px;"
+            "padding:20px 24px;margin-top:16px;margin-bottom:8px;box-shadow:0 4px 12px rgba(79,70,229,0.06);'>"
+            "<div style='display:flex;align-items:center;gap:10px;margin-bottom:6px;'>"
+            "<span class='material-symbols-rounded' style='color:#4f46e5;font-size:1.3rem;'>mic</span>"
+            "<span style='font-size:0.9rem;font-weight:700;color:#1e293b;'>Voix du Narrateur</span>"
+            "</div>"
+            "<p style='font-size:0.82rem;color:#94a3b8;margin:0 0 12px 0;'>Choisissez qui raconte l'histoire.</p>",
             unsafe_allow_html=True
         )
-        
-        VOICES = ["Par défaut (selon l'enfant)", "👩 Femme (Douce)", "👨 Homme (Chaleureux)", "👧 Petite Fille", "👦 Petit Garçon"]
+        VOICES = ["Par défaut (selon l'enfant)", "Femme (Douce)", "Homme (Chaleureux)", "Petite Fille", "Petit Garçon"]
         if "narrator" not in st.session_state:
             st.session_state.narrator = VOICES[0]
-            
-        st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES, index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0, label_visibility="collapsed")
+        st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES,
+            index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0,
+            label_visibility="collapsed")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # ══════════════════════════════════════
     #  ÉTAPE 2 — SCÉNARIO
