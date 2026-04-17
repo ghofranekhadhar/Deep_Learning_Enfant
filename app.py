@@ -1576,8 +1576,14 @@ def main():
         # ══ SUGGESTIONS RAPIDES ══
         st.markdown("<div style='margin-top:24px;'></div>", unsafe_allow_html=True)
         st.markdown(
-            "<style>[data-testid='stVerticalBlockBorderWrapper']:has(button[data-testid^='stBaseButton']) "
-            "{ border-color:#c4b5fd !important; border-radius:16px !important; }</style>",
+            "<style>"
+            "#sect-examples + div [data-testid='stVerticalBlockBorderWrapper'],"
+            "#sect-examples ~ div [data-testid='stVerticalBlockBorderWrapper']{"
+            "background:linear-gradient(145deg,rgba(124,58,237,0.18),rgba(168,85,247,0.10))!important;"
+            "border-color:#a78bfa!important;border-width:1.5px!important;"
+            "box-shadow:0 4px 20px rgba(124,58,237,0.14)!important;"
+            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
+            "</style><span id='sect-examples'></span>",
             unsafe_allow_html=True
         )
         with st.container(border=True):
@@ -1612,6 +1618,17 @@ def main():
 
         # ══ CHOIX DU PERSONNAGE ══
         st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<style>"
+            "#sect-heroes + div [data-testid='stVerticalBlockBorderWrapper'],"
+            "#sect-heroes ~ div [data-testid='stVerticalBlockBorderWrapper']{"
+            "background:linear-gradient(145deg,rgba(37,99,235,0.18),rgba(59,130,246,0.10))!important;"
+            "border-color:#60a5fa!important;border-width:1.5px!important;"
+            "box-shadow:0 4px 20px rgba(37,99,235,0.14)!important;"
+            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
+            "</style><span id='sect-heroes'></span>",
+            unsafe_allow_html=True
+        )
         with st.container(border=True):
             st.markdown(
                 "<div style='background:linear-gradient(135deg,#2563eb,#3b82f6);"
@@ -1658,6 +1675,17 @@ def main():
 
         # ══ CHOIX DU NARRATEUR ══
         st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<style>"
+            "#sect-narrator + div [data-testid='stVerticalBlockBorderWrapper'],"
+            "#sect-narrator ~ div [data-testid='stVerticalBlockBorderWrapper']{"
+            "background:linear-gradient(145deg,rgba(219,39,119,0.18),rgba(236,72,153,0.10))!important;"
+            "border-color:#f472b6!important;border-width:1.5px!important;"
+            "box-shadow:0 4px 20px rgba(219,39,119,0.14)!important;"
+            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
+            "</style><span id='sect-narrator'></span>",
+            unsafe_allow_html=True
+        )
         with st.container(border=True):
             st.markdown(
                 "<div style='background:linear-gradient(135deg,#db2777,#ec4899);"
