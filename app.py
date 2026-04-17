@@ -898,15 +898,18 @@ CSS = """
 
 html,body,.stApp,[data-testid="stAppViewContainer"]{
     background:#f0f2f8!important;
-    font-family:'Inter',system-ui,sans-serif!important;
+    font-family:'Inter',system-ui,sans-serif;
 }
 [data-testid="stHeader"]{background:#ffffff!important;border-bottom:1px solid #e2e8f0;}
 [data-testid="stSidebar"]{background:#ffffff!important;border-right:1px solid #e2e8f0;padding-top:1.5rem;}
 .block-container{background:transparent!important;padding-top:1.5rem!important;max-width:820px!important;}
 
 /* Typography — NE PAS toucher les bulles de chat */
-h1,h2,h3{color:#0f172a!important;font-family:'Inter',sans-serif!important;}
-p,div,span:not([class*="material"]),label{font-family:'Inter',sans-serif!important;}
+h1,h2,h3{color:#0f172a!important;font-family:'Inter',sans-serif;}
+p,div,label{font-family:'Inter',sans-serif;}
+.material-icons, .material-symbols-rounded, .material-symbols-outlined, i[class*="icon"], span[class*="icon"], span[class*="material"], span[class*="stIcon"] {
+    font-family: "Material Symbols Rounded", "Material Icons" !important;
+}
 :not(.ds-bubble-user):not(.ds-bubble-user *):not(.ds-bubble-ai):not(.ds-bubble-ai *) {
     color: inherit;
 }
