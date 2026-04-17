@@ -803,8 +803,24 @@ async def _edge_gen(text,voice,rate,pitch,out):
     comm=edge_tts.Communicate(text=text,voice=voice,rate=rate,pitch=pitch)
     await comm.save(out)
 
-def gen_audio(char, narrations, folder, ph) -> tuple:
+def gen_audio(char, narrations, theme_name, folder, ph) -> tuple:
     voice=Cfg.VF if char.genre=="fille" else Cfg.VG
+    vrate=Cfg.VRATE
+    vpitch=Cfg.VPITCH
+    
+    chosen_narr = st.session_state.get("narrator", "Par défaut")
+    if "Femme" in chosen_narr:
+        voice = "fr-FR-DeniseNeural"
+    elif "Homme" in chosen_narr:
+        voice = "fr-FR-HenriNeural"
+        vpitch = "-5Hz"
+    elif "Fille" in chosen_narr:
+        voice = "fr-FR-EloiseNeural"
+        vpitch = "+15Hz"
+    elif "Garçon" in chosen_narr:
+        voice = "fr-FR-HenriNeural"
+        vpitch = "+35Hz"
+        
     from pydub import AudioSegment
     import os, time
     
@@ -823,7 +839,7 @@ def gen_audio(char, narrations, folder, ph) -> tuple:
         if _EDGE_TTS_OK:
             try:
                 import edge_tts, asyncio
-                asyncio.run(_edge_gen(text,voice,Cfg.VRATE,Cfg.VPITCH,part_path))
+                asyncio.run(_edge_gen(text,voice,vrate,vpitch,part_path))
                 ok = True
             except: pass
         if not ok:
@@ -841,9 +857,11 @@ def gen_audio(char, narrations, folder, ph) -> tuple:
     combined_voix.export(vp, format="mp3")
     
     try:
-        ph.info("🎵 Mixage dynamique de l'ambiance...")
-        import urllib.request
-        bgm_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"
+        ph.info("🎵 Mixage de l'ambiance musicale adaptée...")
+        import urllib.request, hashlib
+        seed_str = f"{char.hero}_{theme_name}"
+        music_id = int(hashlib.md5(seed_str.encode()).hexdigest(), 16) % 17 + 1
+        bgm_url = f"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-{music_id}.mp3"
         bgm_path = os.path.join(folder, "bgm.mp3")
         req = urllib.request.Request(bgm_url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as resp, open(bgm_path, 'wb') as f:
@@ -888,7 +906,7 @@ html,body,.stApp,[data-testid="stAppViewContainer"]{
 
 /* Typography — NE PAS toucher les bulles de chat */
 h1,h2,h3{color:#0f172a!important;font-family:'Inter',sans-serif!important;}
-p,div,span,label{font-family:'Inter',sans-serif!important;}
+p,div,span:not([class*="material"]),label{font-family:'Inter',sans-serif!important;}
 :not(.ds-bubble-user):not(.ds-bubble-user *):not(.ds-bubble-ai):not(.ds-bubble-ai *) {
     color: inherit;
 }
@@ -1573,6 +1591,26 @@ def main():
                             use_container_width=True, on_click=append_hero, args=(h["label"],)
                         )
 
+        # ══════════════════════════════════════════════════
+        # CHOIX DU NARRATEUR
+        # ─────────────────────────────────────────
+        st.markdown(
+            "<div style='margin-top:20px;margin-bottom:8px;'>"
+            "<span style='font-size:0.75rem;font-weight:700;color:#64748b;"
+            "text-transform:uppercase;letter-spacing:0.06em;'>🎙️ Voix du Narrateur</span><br>"
+            "<span style='font-size:0.8rem;color:#8492a6;'>"
+            "Choisissez qui raconte l'histoire !"
+            "</span>"
+            "</div>",
+            unsafe_allow_html=True
+        )
+        
+        VOICES = ["Par défaut (selon l'enfant)", "👩 Femme (Douce)", "👨 Homme (Chaleureux)", "👧 Petite Fille", "👦 Petit Garçon"]
+        if "narrator" not in st.session_state:
+            st.session_state.narrator = VOICES[0]
+            
+        st.session_state.narrator = st.selectbox("Voix du narrateur", VOICES, index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0, label_visibility="collapsed")
+
     # ══════════════════════════════════════
     #  ÉTAPE 2 — SCÉNARIO
     # ══════════════════════════════════════
@@ -1598,7 +1636,7 @@ def main():
                 <div style="font-size:1.8rem;font-weight:800;color:#f8fafc; margin-bottom: 4px;">{char.prenom} <span style="font-size:1.1rem; color:#cbd5e1; font-weight:500;">({char.age} ans)</span></div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
                     <span style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); border-radius: 99px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: #fca5a5;">⚠️ Danger : {data.get('danger_court','')}</span>
-                    <span style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); border-radius: 99px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: #a5b4fc;">🎨 Ambiance : {data.get('ambiance_couleur','')}</span>
+                    <span style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); border-radius: 99px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; color: #a5b4fc;">🦸‍♂️ Héros : {char.hero if char.hero and char.hero != "Par défaut" else "Choix libre de l'IA"}</span>
                 </div>
             </div>
             <div style="flex:1; min-width: 200px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.1);">
@@ -1644,10 +1682,10 @@ def main():
         # Histoire complète dans l'expander (replié par défaut pour plus de propreté)
         with st.expander("📖 Voir le texte complet de l'histoire", expanded=False):
             for lbl,txt in [
-                ("🎵 Introduction",song.intro),("📖 Acte I — Vie normale",song.acte1),
-                ("😮 Acte II — La tentation",song.acte2),("🚨 Refrain 1 — Avertissement",song.refrain1),
+                ("📖 Introduction",song.intro),("📖 Acte I — Vie normale",song.acte1),
+                ("😮 Acte II — La tentation",song.acte2),("🚨 Attention — Avertissement",song.refrain1),
                 ("⚠️ Acte III — La bêtise",song.acte3),("💥 Acte IV — Conséquence",song.acte4),
-                ("💡 Refrain 2 — La leçon",song.refrain2),("😢 Acte V — Il comprend",song.acte5),
+                ("💡 La morale — Explication",song.refrain2),("😢 Acte V — Il comprend",song.acte5),
                 ("🤝 Acte VI — La promesse",song.acte6),("🫵 Message final",song.outro)]:
                 st.markdown(f'<div class="song-blk"><div class="song-lbl">{lbl}</div>'
                     f'<div class="song-txt">{txt}</div></div>',unsafe_allow_html=True)
@@ -1682,9 +1720,10 @@ def main():
         </div>""",unsafe_allow_html=True)
 
         with st.status("⚙️ Génération en cours...",expanded=True) as status:
+            info_txt = st.empty()
             aph = st.empty()
             with tempfile.TemporaryDirectory() as tmpdir:
-                audio_path, durees_frames = gen_audio(char, st.session_state.narrations, tmpdir, aph)
+                audio_path, durees_frames = gen_audio(char, st.session_state.narrations, st.session_state.theme, tmpdir, aph)
                 aph.empty()
                 
                 # Check list is complete for safety
@@ -1693,7 +1732,7 @@ def main():
                     
                 scenes=build_scenes(char,song,st.session_state.theme,st.session_state.narrations,st.session_state.img_prompts, st.session_state.emotions_personnage, st.session_state.lieux_scenes, durees_frames)
                 
-                st.write("🖼️ Génération des décors avec l'IA...")
+                info_txt.write("🖼️ Génération des décors avec l'IA...")
                 import urllib.request, urllib.parse, time
                 pb_bg = st.progress(0, text="Téléchargement des images IA…")
                 for i, scene in enumerate(scenes):
@@ -1712,15 +1751,18 @@ def main():
                     if not image_recue: scene.bg_img = None
                     pb_bg.progress((i+1)/len(scenes), text=f"Décor IA {i+1}/{len(scenes)}")
 
-                st.write("🎨 Rendu vidéo frame par frame...")
+                pb_bg.empty()
+                info_txt.write("🎨 Rendu vidéo frame par frame...")
                 pb=st.progress(0,text="Démarrage…")
                 frames=render_all(scenes,char.genre,song,td,pb)
 
-                st.write("⚙️ Encodage MP4…")
+                pb.empty()
+                info_txt.write("⚙️ Encodage MP4…")
                 fp=encode_video(frames,audio_path,tmpdir,char.prenom)
                 if not os.path.exists(fp):
                     st.error("❌ Erreur encodage. Vérifie que ffmpeg est installé."); st.stop()
                 with open(fp,"rb")as fv: vb=fv.read()
+            info_txt.empty()
             status.update(label="✅ Vidéo prête!",state="complete",expanded=False)
 
         st.success(f"🎉 La vidéo de **{char.prenom}** est prête!")
@@ -1733,15 +1775,23 @@ def main():
             mime="video/mp4",use_container_width=True,type="primary")
 
         st.markdown("---")
-        c1,c2=st.columns(2)
+        c1, c2 = st.columns(2)
         with c1:
-            if st.button("🔄 Créer une nouvelle vidéo",use_container_width=True,type="primary"):
-                for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no"]:
-                    st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in["narrations","img_prompts"] else "" if k=="betise" else False if k in["confirmed_yes","confirmed_no"] else None
+            # Relancer avec les mêmes données (Générera de nouvelles images avec l'IA)
+            if st.button("🔄 Regénérer la vidéo", use_container_width=True, type="primary"):
                 st.rerun()
         with c2:
-            st.info("💡 Partage cette vidéo avec ton enfant pour apprendre en s'amusant!")
-
+            # Retour à l'étape 2 (modifier le scénario)
+            if st.button("🔙 Retour au scénario", use_container_width=True):
+                st.session_state.step = 2
+                st.rerun()
+                
+        st.markdown("<br>", unsafe_allow_html=True)
+        # Revenir complètement au début pour une toute nouvelle bêtise
+        if st.button("🏠 Créer une toute nouvelle histoire (Accueil)", use_container_width=True):
+            for k in["step","betise","val","scenario","char","song","narrations","img_prompts","theme","confirmed_yes","confirmed_no","chat_history","editing_index","editing_content"]:
+                st.session_state[k]=1 if k=="step" else "general" if k=="theme" else [] if k in["narrations","img_prompts","chat_history"] else "" if k=="betise" else False if k in["confirmed_yes","confirmed_no"] else None
+            st.rerun()
     # ── Footer ──
     st.markdown("---")
     st.markdown("<p style='text-align:center;font-size:.76rem;color:#94a3b8;'>"
