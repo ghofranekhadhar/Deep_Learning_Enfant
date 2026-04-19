@@ -44,7 +44,7 @@ class Cfg:
     FONT_R=FONT_DIR+"DejaVuSans.ttf"
     VF="fr-FR-DeniseNeural"; VG="fr-FR-HenriNeural"
     VRATE="-20%"; VPITCH="+5Hz"
-    MODEL="llama-3.1-8b-instant"
+    MODEL="llama-3.3-70b-versatile"
 
 # ─────────────────────────────────────────
 #  DATACLASSES
@@ -138,6 +138,8 @@ Phrase : {betise}"""
 
 SCN_PROMPT="""Tu es auteur de livres éducatifs pour enfants 3-8 ans. Génère une histoire narrative d'aventure.
 INSTRUCTION DE STYLE : Les phrases de narration (scenes_narration) DOIVENT être racontées avec une voix de conteur très enthousiaste ! Utilise des exclamations, des onomatopées (Boïng, Oups, Aïe) et des questions pour captiver l'enfant !
+INSTRUCTION LANGUE : TOUS les textes générés (scenes_narration, lieux_scenes, emotions_personnage, conseils, prenom, danger_court, decor_principal, etc.) DOIVENT ÊTRE STRICTEMENT EN {langue}.
+Exception : "image_prompts" DOIT impérativement TOUJOURS rester en ANGLAIS.
 Décor : {theme_desc}. Réponds UNIQUEMENT JSON valide sans markdown :
 {{"prenom":"{prenom}","age":{age},"genre":"{genre}","hero":"{hero}","danger_court":"3 mots max",
 "decor_principal":"8 mots max","ambiance_couleur":"couleur dominante",
@@ -260,7 +262,7 @@ def validate_ai(betise: str, api_key: str) -> dict:
 #  CHAT PROMPT — conversation libre + détection scénario
 # ─────────────────────────────────────────
 CHAT_PROMPT = """
-Tu es un assistant pédagogique chaleureux et compréhensif. Tu parles UNIQUEMENT français.
+Tu es un assistant pédagogique chaleureux et compréhensif. Tu parles UNIQUEMENT en {langue}.
 Tu aides les PARENTS avec l'éducation de leur enfant.
 
 Règle 1 — CONVERSATION GÉNÉRALE :
@@ -344,7 +346,8 @@ def chat_ai(message: str, api_key: str, current_state: dict = None) -> dict:
 def scenario_ai(betise: str, val: dict, api_key: str) -> dict:
     theme_val = val.get("theme") or "general"
     t = THEMES.get(theme_val, THEMES["general"])
-    p = SCN_PROMPT.replace("{betise}", betise).replace("{theme_desc}", t["desc"])
+    langue = st.session_state.get("langue", "Français")
+    p = SCN_PROMPT.replace("{betise}", betise).replace("{theme_desc}", t["desc"]).replace("{langue}", langue)
     prenom = val.get("prenom") or "l'enfant"
     age = val.get("age") or 5
     genre = val.get("genre") or "garçon"
@@ -803,22 +806,49 @@ async def _edge_gen(text,voice,rate,pitch,out):
     await comm.save(out)
 
 def gen_audio(char, narrations, theme_name, folder, ph) -> tuple:
-    voice=Cfg.VF if char.genre=="fille" else Cfg.VG
-    vrate=Cfg.VRATE
-    vpitch=Cfg.VPITCH
-    
+    langue = st.session_state.get("langue", "Français")
     chosen_narr = st.session_state.get("narrator", "Par défaut")
-    if "Femme" in chosen_narr:
+    vrate = Cfg.VRATE
+    vpitch = Cfg.VPITCH
+    voice = Cfg.VF
+    lang_code = "fr"
+
+    if langue == "English":
+        lang_code = "en"
+        voice = "en-US-JennyNeural"
+        if "Homme" in chosen_narr:
+            voice = "en-US-GuyNeural"
+            vpitch = "-5Hz"
+        elif "Fille" in chosen_narr:
+            voice = "en-US-AnaNeural"
+            vpitch = "+15Hz"
+        elif "Garçon" in chosen_narr:
+            voice = "en-US-ChristopherNeural"
+            vpitch = "+35Hz"
+    elif langue == "العربية":
+        lang_code = "ar"
+        voice = "ar-SA-ZariyahNeural"
+        if "Homme" in chosen_narr:
+            voice = "ar-SA-HamedNeural"
+            vpitch = "-5Hz"
+        elif "Fille" in chosen_narr:
+            voice = "ar-AE-FatimaNeural"
+            vpitch = "+15Hz"
+        elif "Garçon" in chosen_narr:
+            voice = "ar-SA-HamedNeural"
+            vpitch = "+35Hz"
+    else: # Français
+        lang_code = "fr"
         voice = "fr-FR-DeniseNeural"
-    elif "Homme" in chosen_narr:
-        voice = "fr-FR-HenriNeural"
-        vpitch = "-5Hz"
-    elif "Fille" in chosen_narr:
-        voice = "fr-FR-EloiseNeural"
-        vpitch = "+15Hz"
-    elif "Garçon" in chosen_narr:
-        voice = "fr-FR-HenriNeural"
-        vpitch = "+35Hz"
+        if "Homme" in chosen_narr:
+            voice = "fr-FR-HenriNeural"
+            vpitch = "-5Hz"
+        elif "Fille" in chosen_narr:
+            voice = "fr-FR-EloiseNeural"
+            vpitch = "+15Hz"
+        elif "Garçon" in chosen_narr:
+            voice = "fr-FR-HenriNeural"
+            vpitch = "+35Hz"
         
     from pydub import AudioSegment
     import os, time
@@ -843,7 +873,7 @@ def gen_audio(char, narrations, theme_name, folder, ph) -> tuple:
             except: pass
         if not ok:
             from gtts import gTTS
-            gTTS(text=text,lang="fr",slow=False).save(part_path)
+            gTTS(text=text,lang=lang_code,slow=False).save(part_path)
             
         seg = AudioSegment.from_file(part_path)
         # 500ms pause
@@ -1170,7 +1200,7 @@ def main():
     st.markdown(CSS,unsafe_allow_html=True)
 
     # ── SESSION ──
-    defaults={"step":1,"api_key":"","betise":"","val":None,
+    defaults={"step":1,"api_key":"","betise":"","val":None,"langue":"Français",
               "scenario":None,"char":None,"song":None,"narrations":[],"img_prompts":[],
               "theme":"general","analyzing":False,"show_key":False,
               "confirmed_yes":False,"confirmed_no":False,
@@ -1682,6 +1712,37 @@ def main():
                 index=VOICES.index(st.session_state.narrator) if st.session_state.narrator in VOICES else 0,
                 label_visibility="collapsed")
 
+        # ══ CHOIX DE LA LANGUE ══
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            "<style>"
+            "#sect-lang ~ div [data-testid='stVerticalBlockBorderWrapper'],"
+            "#sect-lang ~ div [data-testid='stVerticalBlockBorderWrapper'] > [data-testid='stVerticalBlock']{"
+            "background:linear-gradient(145deg,rgba(16,185,129,0.18),rgba(52,211,153,0.10))!important;"
+            "border-color:#34d399!important;border-width:1.5px!important;"
+            "backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}"
+            "#sect-lang ~ div [data-testid='stVerticalBlockBorderWrapper']{"
+            "box-shadow:0 4px 20px rgba(16,185,129,0.14)!important;}"
+            "</style><span id='sect-lang'></span>",
+            unsafe_allow_html=True
+        )
+        with st.container(border=True):
+            st.markdown(
+                "<div style='background:linear-gradient(135deg,#10b981,#34d399);"
+                "border-radius:8px;padding:12px 16px;margin:-16px -16px 14px -16px;'>"
+                "<span class='material-symbols-rounded' style='color:#fff;font-size:1.1rem;vertical-align:middle;margin-right:6px;'>language</span>"
+                "<span style='font-size:0.9rem;font-weight:700;color:#fff;'>Langue de l'histoire</span>"
+                "<span style='font-size:0.75rem;color:rgba(255,255,255,0.8);margin-left:8px;'>— audio et texte</span>"
+                "</div>",
+                unsafe_allow_html=True
+            )
+            LANGS = ["Français", "English", "العربية"]
+            if "langue" not in st.session_state:
+                st.session_state.langue = LANGS[0]
+            st.session_state.langue = st.selectbox("Langue de l'histoire", LANGS,
+                index=LANGS.index(st.session_state.langue) if st.session_state.langue in LANGS else 0,
+                label_visibility="collapsed")
+
     # ══════════════════════════════════════
     #  ÉTAPE 2 — SCÉNARIO
     # ══════════════════════════════════════
@@ -1820,17 +1881,26 @@ def main():
                 fp=encode_video(frames,audio_path,tmpdir,char.prenom)
                 if not os.path.exists(fp):
                     st.error("❌ Erreur encodage. Vérifie que ffmpeg est installé."); st.stop()
+                
+                # Sauvegarder dans un fichier persistant pour contourner le bug 404 de st.video(bytes)
+                import shutil
+                shutil.copy(fp, "video_output.mp4")
                 with open(fp,"rb")as fv: vb=fv.read()
             info_txt.empty()
             status.update(label="✅ Vidéo prête!",state="complete",expanded=False)
 
         st.success(f"La vidéo de **{char.prenom}** est prête!", icon=":material/celebration:")
-        st.video(vb)
-        danger_slug=data.get("danger_court","").replace(" ","_")
+        st.video("video_output.mp4")
+        
+        # Nettoyer les caractères spéciaux pour éviter une erreur 404 au téléchargement
+        import re
+        safe_prenom = re.sub(r'[^A-Za-z0-9]', '', char.prenom.lower())
+        danger_slug = re.sub(r'[^A-Za-z0-9_]', '', data.get("danger_court","").replace(" ","_"))
+        
         st.download_button(
             label=f":material/save: Télécharger la vidéo — {char.prenom}.mp4",
             data=vb,
-            file_name=f"anime_{char.prenom.lower()}_{danger_slug}.mp4",
+            file_name=f"anime_{safe_prenom}_{danger_slug}.mp4",
             mime="video/mp4",use_container_width=True,type="primary")
 
         st.markdown("---")
